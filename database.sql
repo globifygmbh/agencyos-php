@@ -2,12 +2,12 @@
 -- Encoding: UTF-8
 -- Engine: InnoDB
 
-SET NAMES utf8mb4;
-SET CHARACTER SET utf8mb4;
-SET collation_connection = utf8mb4_unicode_ci;
+SET NAMES utf8;
+SET CHARACTER SET utf8;
+SET collation_connection = utf8_general_ci;
 
 -- Datenbank bitte vorher manuell erstellen:
--- CREATE DATABASE agencyos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- CREATE DATABASE agencyos CHARACTER SET utf8 COLLATE utf8_general_ci;
 -- USE agencyos;
 
 -- ============================================================
@@ -23,7 +23,7 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`token`),
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_expires_at` (`expires_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- USERS
@@ -62,7 +62,7 @@ CREATE TABLE `users` (
   INDEX `idx_username` (`username`),
   INDEX `idx_role` (`role`),
   INDEX `idx_is_active` (`is_active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CUSTOM MENU ITEMS
@@ -78,7 +78,7 @@ CREATE TABLE `custom_menu_items` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- TASK STATUSES
@@ -93,7 +93,7 @@ CREATE TABLE `task_statuses` (
   `is_done`     TINYINT(1)  DEFAULT 0,
   `created_at`  DATETIME     DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CUSTOMERS
@@ -119,7 +119,7 @@ CREATE TABLE `customers` (
   PRIMARY KEY (`id`),
   INDEX `idx_status` (`status`),
   INDEX `idx_account_manager` (`account_manager`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CUSTOMER ACCESS (shared users)
@@ -130,7 +130,7 @@ CREATE TABLE `customer_access` (
   PRIMARY KEY (`customer_id`, `user_id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- PUBLIC PAGE SETTINGS
@@ -149,7 +149,7 @@ CREATE TABLE `public_page_settings` (
   `updated_at`        DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- PUBLIC PAGE LINKS
@@ -165,7 +165,7 @@ CREATE TABLE `public_page_links` (
   PRIMARY KEY (`id`),
   INDEX `idx_customer_id` (`customer_id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CUSTOMER CREDENTIALS
@@ -186,7 +186,7 @@ CREATE TABLE `customer_credentials` (
   PRIMARY KEY (`id`),
   INDEX `idx_customer_id` (`customer_id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `credential_visibility` (
   `credential_id` VARCHAR(36) NOT NULL,
@@ -194,7 +194,7 @@ CREATE TABLE `credential_visibility` (
   PRIMARY KEY (`credential_id`, `user_id`),
   FOREIGN KEY (`credential_id`) REFERENCES `customer_credentials`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CONTENT PLAN
@@ -215,7 +215,7 @@ CREATE TABLE `content_plan` (
   INDEX `idx_customer_id` (`customer_id`),
   INDEX `idx_publish_date` (`publish_date`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `content_plan_media` (
   `id`         VARCHAR(36)  NOT NULL,
@@ -227,7 +227,7 @@ CREATE TABLE `content_plan_media` (
   PRIMARY KEY (`id`),
   INDEX `idx_post_id` (`post_id`),
   FOREIGN KEY (`post_id`) REFERENCES `content_plan`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `content_plan_pdfs` (
   `id`          VARCHAR(36)  NOT NULL,
@@ -240,7 +240,7 @@ CREATE TABLE `content_plan_pdfs` (
   PRIMARY KEY (`id`),
   INDEX `idx_customer_id` (`customer_id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CUSTOMER REPORTS
@@ -257,7 +257,7 @@ CREATE TABLE `customer_reports` (
   PRIMARY KEY (`id`),
   INDEX `idx_customer_id` (`customer_id`),
   FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- PROJECTS
@@ -279,7 +279,7 @@ CREATE TABLE `projects` (
   PRIMARY KEY (`id`),
   INDEX `idx_status` (`status`),
   INDEX `idx_customer_id` (`customer_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `project_members` (
   `project_id` VARCHAR(36) NOT NULL,
@@ -287,7 +287,7 @@ CREATE TABLE `project_members` (
   PRIMARY KEY (`project_id`, `user_id`),
   FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `project_milestones` (
   `id`           VARCHAR(36)  NOT NULL,
@@ -303,7 +303,7 @@ CREATE TABLE `project_milestones` (
   PRIMARY KEY (`id`),
   INDEX `idx_project_id` (`project_id`),
   FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `project_files` (
   `id`          VARCHAR(36)  NOT NULL,
@@ -317,7 +317,7 @@ CREATE TABLE `project_files` (
   PRIMARY KEY (`id`),
   INDEX `idx_project_id` (`project_id`),
   FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- TASKS
@@ -350,7 +350,7 @@ CREATE TABLE `tasks` (
   INDEX `idx_status_id` (`status_id`),
   INDEX `idx_deadline` (`deadline`),
   INDEX `idx_is_archived` (`is_archived`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `task_comments` (
   `id`         VARCHAR(36)   NOT NULL,
@@ -361,7 +361,7 @@ CREATE TABLE `task_comments` (
   PRIMARY KEY (`id`),
   INDEX `idx_task_id` (`task_id`),
   FOREIGN KEY (`task_id`) REFERENCES `tasks`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `task_files` (
   `id`          VARCHAR(36)  NOT NULL,
@@ -375,7 +375,7 @@ CREATE TABLE `task_files` (
   PRIMARY KEY (`id`),
   INDEX `idx_task_id` (`task_id`),
   FOREIGN KEY (`task_id`) REFERENCES `tasks`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- TIME ENTRIES
@@ -402,7 +402,7 @@ CREATE TABLE `time_entries` (
   INDEX `idx_project_id` (`project_id`),
   INDEX `idx_start_time` (`start_time`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CALENDAR EVENTS
@@ -430,7 +430,7 @@ CREATE TABLE `calendar_events` (
   INDEX `idx_start_date` (`start_date`),
   INDEX `idx_end_date` (`end_date`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `event_participants` (
   `event_id` VARCHAR(36) NOT NULL,
@@ -438,7 +438,7 @@ CREATE TABLE `event_participants` (
   PRIMARY KEY (`event_id`, `user_id`),
   FOREIGN KEY (`event_id`) REFERENCES `calendar_events`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `user_calendar_settings` (
   `user_id`          VARCHAR(36)  NOT NULL,
@@ -449,7 +449,7 @@ CREATE TABLE `user_calendar_settings` (
   `updated_at`       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- VACATIONS
@@ -473,7 +473,7 @@ CREATE TABLE `vacations` (
   INDEX `idx_status` (`status`),
   INDEX `idx_start_date` (`start_date`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- NOTIFICATIONS
@@ -492,7 +492,7 @@ CREATE TABLE `notifications` (
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_is_read` (`is_read`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- ACHIEVEMENTS
@@ -507,7 +507,7 @@ CREATE TABLE `achievements` (
   `requirement`  INT          DEFAULT 1,
   `is_hidden`    TINYINT(1)  DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `user_achievements` (
   `id`           VARCHAR(36)  NOT NULL,
@@ -518,7 +518,7 @@ CREATE TABLE `user_achievements` (
   UNIQUE KEY `uniq_user_achievement` (`user_id`, `achievement_id`),
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- GAMIFICATION / POINTS
@@ -535,7 +535,7 @@ CREATE TABLE `point_transactions` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `rewards` (
   `id`             VARCHAR(36)   NOT NULL,
@@ -548,7 +548,7 @@ CREATE TABLE `rewards` (
   `created_at`     DATETIME      DEFAULT CURRENT_TIMESTAMP,
   `updated_at`     DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `reward_redemptions` (
   `id`         VARCHAR(36)  NOT NULL,
@@ -560,7 +560,7 @@ CREATE TABLE `reward_redemptions` (
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`reward_id`) REFERENCES `rewards`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- BENEFITS (Vorteilspass)
@@ -583,7 +583,7 @@ CREATE TABLE `benefits` (
   PRIMARY KEY (`id`),
   INDEX `idx_is_active` (`is_active`),
   INDEX `idx_valid_until` (`valid_until`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- CHAT
@@ -597,7 +597,7 @@ CREATE TABLE `conversations` (
   `created_at`  DATETIME     DEFAULT CURRENT_TIMESTAMP,
   `updated_at`  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `conversation_participants` (
   `conversation_id` VARCHAR(36) NOT NULL,
@@ -606,7 +606,7 @@ CREATE TABLE `conversation_participants` (
   PRIMARY KEY (`conversation_id`, `user_id`),
   FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `messages` (
   `id`              VARCHAR(36)   NOT NULL,
@@ -628,7 +628,7 @@ CREATE TABLE `messages` (
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_created_at` (`created_at`),
   FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `message_reactions` (
   `id`         VARCHAR(36)  NOT NULL,
@@ -640,7 +640,7 @@ CREATE TABLE `message_reactions` (
   UNIQUE KEY `uniq_reaction` (`message_id`, `user_id`, `emoji`),
   INDEX `idx_message_id` (`message_id`),
   FOREIGN KEY (`message_id`) REFERENCES `messages`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `message_reads` (
   `message_id`      VARCHAR(36) NOT NULL,
@@ -648,7 +648,7 @@ CREATE TABLE `message_reads` (
   `read_at`         DATETIME    DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`message_id`, `user_id`),
   FOREIGN KEY (`message_id`) REFERENCES `messages`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- NOTES
@@ -665,7 +665,7 @@ CREATE TABLE `notes` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- TOOLS (Agency tools with passwords)
@@ -682,7 +682,7 @@ CREATE TABLE `tools` (
   `created_at`  DATETIME      DEFAULT CURRENT_TIMESTAMP,
   `updated_at`  DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- PERSONAL PASSWORDS
@@ -700,7 +700,7 @@ CREATE TABLE `personal_passwords` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- QUESTIONNAIRE (Onboarding)
@@ -721,7 +721,7 @@ CREATE TABLE `questionnaires` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- SHOOTING DOCUMENTATION
@@ -745,7 +745,7 @@ CREATE TABLE `shooting_docs` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_customer_id` (`customer_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- EXPENSE REPORTS
@@ -771,7 +771,7 @@ CREATE TABLE `expense_reports` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- SYSTEM SETTINGS
@@ -790,7 +790,7 @@ CREATE TABLE `system_settings` (
   `google_client_secret` VARCHAR(500) DEFAULT NULL,
   `updated_at`      DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- AUDIT LOGS
@@ -808,7 +808,7 @@ CREATE TABLE `audit_logs` (
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_entity_type` (`entity_type`),
   INDEX `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- ============================================================
 -- DEFAULT DATA
