@@ -6,8 +6,9 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET collation_connection = utf8mb4_unicode_ci;
 
-CREATE DATABASE IF NOT EXISTS `agencyos` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `agencyos`;
+-- Datenbank bitte vorher manuell erstellen:
+-- CREATE DATABASE agencyos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE agencyos;
 
 -- ============================================================
 -- SESSIONS (ersetzt JWT)
