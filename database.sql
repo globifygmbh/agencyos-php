@@ -10,6 +10,21 @@ CREATE DATABASE IF NOT EXISTS `agencyos` CHARACTER SET utf8mb4 COLLATE utf8mb4_u
 USE `agencyos`;
 
 -- ============================================================
+-- SESSIONS (ersetzt JWT)
+-- ============================================================
+CREATE TABLE `sessions` (
+  `token`      VARCHAR(64)  NOT NULL,
+  `user_id`    VARCHAR(36)  NOT NULL,
+  `expires_at` DATETIME     NOT NULL,
+  `ip_address` VARCHAR(45)  DEFAULT NULL,
+  `user_agent` VARCHAR(500) DEFAULT NULL,
+  `created_at` DATETIME     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`token`),
+  INDEX `idx_user_id` (`user_id`),
+  INDEX `idx_expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 -- USERS
 -- ============================================================
 CREATE TABLE `users` (

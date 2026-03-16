@@ -23,7 +23,6 @@ class AuthRoutes
                 return self::error($response, 'Benutzername/Email und Passwort erforderlich', 400);
             }
 
-            // Find user by username or email
             $user = Database::fetchOne(
                 'SELECT * FROM `users` WHERE (`username` = ? OR `email` = ?) LIMIT 1',
                 [$login, $login]
@@ -37,22 +36,33 @@ class AuthRoutes
                 return self::error($response, 'Account ist deaktiviert', 403);
             }
 
-            // Update last login
             Database::update('users', ['last_login' => Helpers::now()], ['id' => $user['id']]);
-
-            // Daily login gamification
             Gamification::checkDailyLogin($user['id']);
-
-            // Audit log
             Helpers::createAuditLog($user['id'], Helpers::userName($user), 'login', 'user', $user['id']);
 
-            $token = Security::createAccessToken($user['id']);
+            // Eigenes Token erzeugen (kein JWT)
+            $token = Security::createAccessToken($user['id'], $request);
 
             return self::json($response, [
                 'access_token' => $token,
                 'token_type'   => 'bearer',
+                'expires_in'   => Security::TOKEN_DAYS * 86400,
                 'user'         => self::safeUser($user),
             ]);
+        });
+
+        // POST /api/auth/logout
+        $app->post('/api/auth/logout', function (Request $request, Response $response) {
+            $token = Security::getBearerToken($request);
+            if ($token) Security::revokeToken($token);
+            return self::json($response, ['message' => 'Erfolgreich abgemeldet']);
+        });
+
+        // POST /api/auth/logout-all  (alle Sessions widerrufen)
+        $app->post('/api/auth/logout-all', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            Security::revokeAllUserTokens($user['id']);
+            return self::json($response, ['message' => 'Alle Sessions beendet']);
         });
 
         // GET /api/auth/me
@@ -61,24 +71,36 @@ class AuthRoutes
             return self::json($response, self::safeUser($user));
         });
 
+        // GET /api/auth/sessions  (eigene aktive Sessions anzeigen)
+        $app->get('/api/auth/sessions', function (Request $request, Response $response) {
+            $user     = Security::getCurrentUser($request);
+            $sessions = Database::fetchAll(
+                'SELECT token, ip_address, user_agent, created_at, expires_at FROM sessions WHERE user_id = ? AND expires_at > NOW() ORDER BY created_at DESC',
+                [$user['id']]
+            );
+            // Token nur die ersten 8 Zeichen zeigen
+            foreach ($sessions as &$s) {
+                $s['token'] = substr($s['token'], 0, 8) . '…';
+            }
+            return self::json($response, $sessions);
+        });
+
         // PUT /api/auth/password
         $app->put('/api/auth/password', function (Request $request, Response $response) {
             $user = Security::getCurrentUser($request);
             $body = (array) $request->getParsedBody();
 
-            $oldPw  = $body['old_password'] ?? '';
-            $newPw  = $body['new_password'] ?? '';
+            $oldPw = $body['old_password'] ?? '';
+            $newPw = $body['new_password'] ?? '';
 
             if (!$oldPw || !$newPw) {
                 return self::error($response, 'Altes und neues Passwort erforderlich', 400);
             }
-
             if (!Security::verifyPassword($oldPw, $user['password_hash'])) {
                 return self::error($response, 'Altes Passwort ist falsch', 400);
             }
-
             if (strlen($newPw) < 6) {
-                return self::error($response, 'Neues Passwort muss mindestens 6 Zeichen haben', 400);
+                return self::error($response, 'Mindestens 6 Zeichen', 400);
             }
 
             Database::update('users', [
@@ -86,52 +108,60 @@ class AuthRoutes
                 'updated_at'    => Helpers::now(),
             ], ['id' => $user['id']]);
 
-            Helpers::createAuditLog($user['id'], Helpers::userName($user), 'password_change', 'user', $user['id']);
+            // Alle anderen Sessions widerrufen (außer aktuelle)
+            $currentToken = Security::getBearerToken($request);
+            Database::execute(
+                'DELETE FROM sessions WHERE user_id = ? AND token != ?',
+                [$user['id'], $currentToken]
+            );
 
+            Helpers::createAuditLog($user['id'], Helpers::userName($user), 'password_change', 'user', $user['id']);
             return self::json($response, ['message' => 'Passwort erfolgreich geändert']);
         });
 
-        // POST /api/auth/setup  - Account setup via invitation token
+        // POST /api/auth/setup  (Account-Setup via Einladungs-Token)
         $app->post('/api/auth/setup', function (Request $request, Response $response) {
             $body  = (array) $request->getParsedBody();
-            $token = $body['token'] ?? '';
+            $setupToken = $body['token'] ?? '';
             $pw    = $body['password'] ?? '';
-            $name  = $body['first_name'] ?? '';
 
-            if (!$token || !$pw) {
+            if (!$setupToken || !$pw) {
                 return self::error($response, 'Token und Passwort erforderlich', 400);
+            }
+            if (strlen($pw) < 6) {
+                return self::error($response, 'Mindestens 6 Zeichen', 400);
             }
 
             $user = Database::fetchOne(
                 'SELECT * FROM `users` WHERE `invitation_token` = ? LIMIT 1',
-                [$token]
+                [$setupToken]
             );
-
             if (!$user) {
-                return self::error($response, 'Ungültiger oder abgelaufener Token', 400);
+                return self::error($response, 'Ungültiger oder abgelaufener Einladungs-Link', 400);
             }
-
             if ($user['invitation_expires'] && strtotime($user['invitation_expires']) < time()) {
-                return self::error($response, 'Token abgelaufen', 400);
+                return self::error($response, 'Einladungs-Link abgelaufen', 400);
             }
 
-            $updates = [
+            $firstName = $body['first_name'] ?? $user['first_name'];
+            Database::update('users', [
                 'password_hash'      => Security::hashPassword($pw),
+                'first_name'         => $firstName,
                 'invitation_token'   => null,
                 'invitation_expires' => null,
                 'setup_completed'    => 1,
                 'is_active'          => 1,
                 'updated_at'         => Helpers::now(),
-            ];
-            if ($name) $updates['first_name'] = $name;
+            ], ['id' => $user['id']]);
 
-            Database::update('users', $updates, ['id' => $user['id']]);
+            $accessToken = Security::createAccessToken($user['id'], $request);
+            $freshUser   = Database::fetchOne('SELECT * FROM users WHERE id = ?', [$user['id']]);
 
-            $accessToken = Security::createAccessToken($user['id']);
             return self::json($response, [
                 'access_token' => $accessToken,
                 'token_type'   => 'bearer',
-                'user'         => self::safeUser(array_merge($user, $updates)),
+                'expires_in'   => Security::TOKEN_DAYS * 86400,
+                'user'         => self::safeUser($freshUser),
             ]);
         });
     }

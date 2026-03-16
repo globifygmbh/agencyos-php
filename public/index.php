@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 // ============================================================
-// AgencyOS – PHP Backend Entry Point
+// AgencyOS – Single Entry Point
+// Dient sowohl die PHP REST API (/api/*) als auch
+// das React-Frontend (alle anderen Pfade → index.html).
+// Eine App, eine URL, kein CORS-Problem.
 // ============================================================
 
 use AgencyOS\Core\Config;
@@ -17,23 +20,79 @@ use AgencyOS\Routes\{
 };
 
 use Slim\Factory\AppFactory;
-use Slim\Routing\RouteCollectorProxy;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
 
-// ---- Autoload ----
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-// ---- Load .env ----
 Config::load();
 
-// ---- Create Slim app ----
+// ------------------------------------------------------------
+// Pfad ermitteln
+// ------------------------------------------------------------
+$uri = $_SERVER['REQUEST_URI'] ?? '/';
+$path = parse_url($uri, PHP_URL_PATH);
+
+// ------------------------------------------------------------
+// FRONTEND BEDIENEN — alle Pfade außer /api/*
+// Wenn eine React-Build vorhanden ist, wird index.html gesendet.
+// ------------------------------------------------------------
+$frontendBuild = dirname(__DIR__) . '/frontend/build';
+$isApiRequest  = str_starts_with($path, '/api') || $path === '/';
+
+if (!$isApiRequest) {
+    // Direkte Datei? (CSS, JS, Bilder aus React-Build)
+    $file = $frontendBuild . $path;
+    if (file_exists($file) && is_file($file)) {
+        $ext  = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $mime = match($ext) {
+            'js'    => 'application/javascript',
+            'css'   => 'text/css',
+            'html'  => 'text/html; charset=utf-8',
+            'json'  => 'application/json',
+            'png'   => 'image/png',
+            'jpg','jpeg' => 'image/jpeg',
+            'svg'   => 'image/svg+xml',
+            'ico'   => 'image/x-icon',
+            'woff'  => 'font/woff',
+            'woff2' => 'font/woff2',
+            'ttf'   => 'font/ttf',
+            'webmanifest' => 'application/manifest+json',
+            default => 'application/octet-stream',
+        };
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=31536000');
+        readfile($file);
+        exit;
+    }
+
+    // Alles andere → React index.html (SPA-Routing)
+    $indexHtml = $frontendBuild . '/index.html';
+    if (file_exists($indexHtml)) {
+        header('Content-Type: text/html; charset=utf-8');
+        readfile($indexHtml);
+        exit;
+    }
+
+    // Kein Frontend-Build vorhanden → hilfreiche Nachricht
+    header('Content-Type: application/json');
+    echo json_encode([
+        'message' => 'AgencyOS läuft. Kein Frontend-Build gefunden.',
+        'hint'    => 'Baue das React-Frontend und lege die Dateien in /frontend/build/ ab.',
+        'api'     => '/api/health',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ------------------------------------------------------------
+// SLIM APP für /api/*
+// ------------------------------------------------------------
 $app = AppFactory::create();
 
-// ---- Error handling ----
 $app->addRoutingMiddleware();
 
+// ---- Fehlerbehandlung ----
 $errorMiddleware = $app->addErrorMiddleware(
     displayErrorDetails: Config::get('APP_ENV', 'production') !== 'production',
     logErrors:           true,
@@ -59,78 +118,60 @@ $errorMiddleware->setDefaultErrorHandler(function (
     return $response->withHeader('Content-Type', 'application/json')->withStatus((int) $code);
 });
 
-// ---- CORS middleware ----
-$app->add(function (Request $request, RequestHandlerInterface $handler): Response {
-    $origin       = $request->getHeaderLine('Origin');
-    $allowedOrigins = Config::corsOrigins();
-    $allowOrigin  = in_array($origin, $allowedOrigins) ? $origin : ($allowedOrigins[0] ?? '*');
-
-    if ($request->getMethod() === 'OPTIONS') {
-        $response = new \Slim\Psr7\Response();
-        return $response
-            ->withHeader('Access-Control-Allow-Origin', $allowOrigin)
-            ->withHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-            ->withHeader('Access-Control-Allow-Credentials', 'true')
-            ->withStatus(200);
-    }
-
-    $response = $handler->handle($request);
-    return $response
-        ->withHeader('Access-Control-Allow-Origin', $allowOrigin)
-        ->withHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS')
-        ->withHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-        ->withHeader('Access-Control-Allow-Credentials', 'true');
-});
-
-// ---- JSON body parser ----
+// ---- Body Parser (JSON + Form) ----
 $app->addBodyParsingMiddleware();
 
-// ---- Health check ----
-$app->get('/api/health', function (Request $request, Response $response): Response {
-    $response->getBody()->write(json_encode(['status' => 'ok', 'app' => 'AgencyOS PHP']));
-    return $response->withHeader('Content-Type', 'application/json');
+// ---- Kein CORS nötig — gleiche Origin! ----
+// (Falls externes Frontend trotzdem gebraucht wird, hier einkommentieren)
+/*
+$app->add(function (Request $request, RequestHandlerInterface $handler): Response {
+    $response = $handler->handle($request);
+    return $response
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 });
+*/
 
+// ---- Health / Root ----
 $app->get('/', function (Request $request, Response $response): Response {
     $response->getBody()->write(json_encode(['status' => 'ok', 'app' => 'AgencyOS PHP']));
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-// ---- File serving ----
+$app->get('/api/health', function (Request $request, Response $response): Response {
+    $response->getBody()->write(json_encode(['status' => 'ok', 'app' => 'AgencyOS PHP', 'time' => date('c')]));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+// ---- Statische Uploads ausliefern ----
 $app->get('/api/uploads/{subdir}/{filename}', function (Request $request, Response $response, array $args): Response {
-    $subdir   = preg_replace('/[^a-zA-Z0-9_\-]/', '', $args['subdir']);
-    $filename = basename($args['filename']);
-    $path     = AgencyOS\Core\Config::uploadDir() . '/' . $subdir . '/' . $filename;
+    $subdir  = preg_replace('/[^a-zA-Z0-9_\-]/', '', $args['subdir']);
+    $fname   = basename($args['filename']);
+    $path    = AgencyOS\Core\Config::uploadDir() . '/' . $subdir . '/' . $fname;
 
     if (!file_exists($path)) {
         $response->getBody()->write(json_encode(['detail' => 'Datei nicht gefunden']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
     }
-
     $mime = AgencyOS\Core\Storage::getMimeType($path);
-    $response->getBody()->write((string)file_get_contents($path));
-    return $response
-        ->withHeader('Content-Type', $mime)
-        ->withHeader('Cache-Control', 'public, max-age=86400')
-        ->withStatus(200);
+    $response->getBody()->write((string) file_get_contents($path));
+    return $response->withHeader('Content-Type', $mime)->withHeader('Cache-Control', 'public, max-age=86400');
 });
 
 $app->get('/api/files/{filename}', function (Request $request, Response $response, array $args): Response {
-    $filename = basename($args['filename']);
-    $path     = AgencyOS\Core\Config::uploadDir() . '/files/' . $filename;
-
+    $fname = basename($args['filename']);
+    $path  = AgencyOS\Core\Config::uploadDir() . '/files/' . $fname;
     if (!file_exists($path)) {
         $response->getBody()->write(json_encode(['detail' => 'Datei nicht gefunden']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
     }
-
     $mime = AgencyOS\Core\Storage::getMimeType($path);
-    $response->getBody()->write((string)file_get_contents($path));
-    return $response->withHeader('Content-Type', $mime)->withStatus(200);
+    $response->getBody()->write((string) file_get_contents($path));
+    return $response->withHeader('Content-Type', $mime);
 });
 
-// ---- Register all routes ----
+// ---- Alle Route-Module registrieren ----
 AuthRoutes::register($app);
 UserRoutes::register($app);
 DashboardRoutes::register($app);
@@ -151,5 +192,4 @@ AiAssistantRoutes::register($app);
 MiscRoutes::register($app);
 RecurringTaskRoutes::register($app);
 
-// ---- Run ----
 $app->run();
