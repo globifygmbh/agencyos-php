@@ -1,0 +1,14 @@
+/vendor/
+.env
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/voice/.gitkeep
+!/uploads/chat/.gitkeep
+!/uploads/files/.gitkeep
+!/uploads/logos/.gitkeep
+!/uploads/avatars/.gitkeep
+!/uploads/benefits/.gitkeep
+!/uploads/reports/.gitkeep
+!/uploads/content/.gitkeep
+*.log
+.DS_Store

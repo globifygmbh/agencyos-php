@@ -1,0 +1,39 @@
+<VirtualHost *:80>
+    ServerName yourdomain.com
+    Redirect permanent / https://yourdomain.com/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName yourdomain.com
+    DocumentRoot /var/www/agencyos-php/public
+
+    SSLEngine on
+    SSLCertificateFile      /etc/letsencrypt/live/yourdomain.com/fullchain.pem
+    SSLCertificateKeyFile   /etc/letsencrypt/live/yourdomain.com/privkey.pem
+
+    <Directory /var/www/agencyos-php/public>
+        AllowOverride All
+        Options -Indexes +FollowSymLinks
+        Require all granted
+    </Directory>
+
+    # Serve uploads directory
+    Alias /api/uploads /var/www/agencyos-php/uploads
+    <Directory /var/www/agencyos-php/uploads>
+        Require all granted
+        Options -Indexes
+    </Directory>
+
+    # PHP-FPM (adjust socket path)
+    <FilesMatch \.php$>
+        SetHandler "proxy:unix:/var/run/php/php8.2-fpm.sock|fcgi://localhost"
+    </FilesMatch>
+
+    <IfModule mod_php>
+        php_value upload_max_filesize 20M
+        php_value post_max_size 20M
+    </IfModule>
+
+    ErrorLog  ${APACHE_LOG_DIR}/agencyos-error.log
+    CustomLog ${APACHE_LOG_DIR}/agencyos-access.log combined
+</VirtualHost>

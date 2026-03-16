@@ -1,0 +1,28 @@
+{
+    "name": "globify/agencyos-php",
+    "description": "AgencyOS - PHP Backend",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "slim/slim": "^4.12",
+        "slim/psr7": "^1.6",
+        "firebase/php-jwt": "^6.9",
+        "vlucas/phpdotenv": "^5.6",
+        "resend/resend-php": "^0.9",
+        "guzzlehttp/guzzle": "^7.8",
+        "openai-php/client": "^0.10",
+        "ramsey/uuid": "^4.7",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-fileinfo": "*",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "AgencyOS\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
