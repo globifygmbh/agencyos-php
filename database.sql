@@ -8,7 +8,8 @@ SET collation_connection = utf8_general_ci;
 
 -- Datenbank bitte vorher manuell erstellen:
 -- CREATE DATABASE agencyos CHARACTER SET utf8 COLLATE utf8_general_ci;
--- USE agencyos;
+
+USE `agencyos`;
 
 -- ============================================================
 -- SESSIONS (ersetzt JWT)
