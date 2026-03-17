@@ -104,7 +104,7 @@ class AdminRoutes
             $sid  = $args['status_id'];
 
             $updates = [];
-            foreach (['name','color','emoji','is_done','sort_order'] as $f) {
+            foreach (['name','color','emoji','is_done','is_default','sort_order'] as $f) {
                 if (array_key_exists($f, $body)) $updates[$f] = $body[$f];
             }
             if (!empty($updates)) Database::update('task_statuses', $updates, ['id' => $sid]);
@@ -135,6 +135,22 @@ class AdminRoutes
                 }
             }
             return self::json($response, ['message' => 'Reihenfolge gespeichert']);
+        });
+
+        // POST /api/admin/users/{user_id}/activate
+        $app->post('/api/admin/users/{user_id}/activate', function (Request $request, Response $response, array $args) {
+            $me = Security::getCurrentUser($request);
+            Security::requireRole($me, 'CHEF');
+            Database::update('users', ['is_active' => 1], ['id' => $args['user_id']]);
+            return self::json($response, ['message' => 'Aktiviert']);
+        });
+
+        // POST /api/admin/users/{user_id}/deactivate
+        $app->post('/api/admin/users/{user_id}/deactivate', function (Request $request, Response $response, array $args) {
+            $me = Security::getCurrentUser($request);
+            Security::requireRole($me, 'CHEF');
+            Database::update('users', ['is_active' => 0], ['id' => $args['user_id']]);
+            return self::json($response, ['message' => 'Deaktiviert']);
         });
 
         // POST /api/admin/users/{user_id}/invite

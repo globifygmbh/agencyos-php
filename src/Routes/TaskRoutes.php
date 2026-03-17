@@ -78,6 +78,8 @@ class TaskRoutes
             if (!empty($params['status_id']))  { $sql .= ' AND t.status_id=?';  $binds[] = $params['status_id']; }
             if (!empty($params['assigned_to'])){ $sql .= ' AND t.assigned_to=?';$binds[] = $params['assigned_to']; }
             if (!empty($params['customer_id'])){ $sql .= ' AND t.customer_id=?';$binds[] = $params['customer_id']; }
+            if (!empty($params['my']))         { $sql .= ' AND t.assigned_to=?';$binds[] = $user['id']; }
+            if (!empty($params['search']))     { $sql .= ' AND (t.title LIKE ? OR t.description LIKE ?)'; $q = '%' . $params['search'] . '%'; $binds[] = $q; $binds[] = $q; }
 
             $sql .= ' ORDER BY t.sort_order ASC, t.deadline ASC, t.created_at DESC';
 
@@ -321,15 +323,17 @@ class TaskRoutes
         if (empty($tasks)) return [];
 
         // Fetch all users at once
-        $userIds   = array_unique(array_filter(array_merge(
+        $userIds    = array_unique(array_filter(array_merge(
             array_column($tasks, 'assigned_to'),
             array_column($tasks, 'account_manager'),
             array_column($tasks, 'created_by')
         )));
-        $statusIds = array_unique(array_filter(array_column($tasks, 'status_id')));
+        $statusIds  = array_unique(array_filter(array_column($tasks, 'status_id')));
+        $projectIds = array_unique(array_filter(array_column($tasks, 'project_id')));
 
         $users    = [];
         $statuses = [];
+        $projects = [];
 
         if ($userIds) {
             $placeholders = implode(',', array_fill(0, count($userIds), '?'));
@@ -343,12 +347,19 @@ class TaskRoutes
                 $statuses[$s['id']] = $s;
             }
         }
+        if ($projectIds) {
+            $placeholders = implode(',', array_fill(0, count($projectIds), '?'));
+            foreach (Database::fetchAll("SELECT id,name FROM projects WHERE id IN ($placeholders)", array_values($projectIds)) as $p) {
+                $projects[$p['id']] = $p;
+            }
+        }
 
-        return array_map(function ($task) use ($users, $statuses) {
+        return array_map(function ($task) use ($users, $statuses, $projects) {
             if ($task['tags'])             $task['tags']             = Helpers::jsonDecode($task['tags'], []);
             if ($task['recurring_config']) $task['recurring_config'] = Helpers::jsonDecode($task['recurring_config'], null);
-            $task['status']   = $statuses[$task['status_id']] ?? null;
-            $task['assignee'] = $users[$task['assigned_to']] ?? null;
+            $task['status']       = $statuses[$task['status_id']] ?? null;
+            $task['assignee']     = $users[$task['assigned_to']] ?? null;
+            $task['project_name'] = $projects[$task['project_id']]['name'] ?? null;
             return $task;
         }, $tasks);
     }

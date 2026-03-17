@@ -96,6 +96,7 @@ $viewMap = [
     '/benefits'       => 'benefits',
     '/forms'          => 'forms',
     '/ai'             => 'ai',
+    '/team'           => 'team',
     '/admin'          => 'admin',
     '/profile'        => 'profile',
 ];

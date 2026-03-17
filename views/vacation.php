@@ -149,7 +149,7 @@ function vacationApp() {
         filterStatus: '',
         modal: false,
         form: {},
-        isAdmin: <?= json_encode(in_array($currentUser['role'] ?? '', ['admin', 'owner'])) ?>,
+        isAdmin: <?= json_encode(in_array($currentUser['role'] ?? '', ['CHEF', 'MANAGER', 'admin', 'owner'])) ?>,
 
         async init() {
             await Promise.all([this.loadVacations(), this.loadStats(), this.loadTeam()]);
@@ -190,13 +190,13 @@ function vacationApp() {
         },
 
         async approve(id) {
-            await fetch('/api/vacations/' + id + '/approve', { method: 'POST' });
+            await fetch('/api/vacations/' + id + '/approve', { method: 'PUT' });
             await this.loadVacations();
         },
 
         async reject(id) {
             const reason = prompt('Ablehnungsgrund (optional):') ?? '';
-            await fetch('/api/vacations/' + id + '/reject', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ reason }) });
+            await fetch('/api/vacations/' + id + '/reject', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ reason }) });
             await this.loadVacations();
         },
 
