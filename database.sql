@@ -1,15 +1,9 @@
 -- AgencyOS MySQL Database Schema
--- Encoding: UTF-8
--- Engine: InnoDB
+-- Vor dem Import: Datenbank in phpMyAdmin links anklicken, dann importieren.
 
 SET NAMES utf8;
 SET CHARACTER SET utf8;
 SET collation_connection = utf8_general_ci;
-
--- Datenbank bitte vorher manuell erstellen:
--- CREATE DATABASE agencyos CHARACTER SET utf8 COLLATE utf8_general_ci;
-
-USE `agencyos`;
 
 -- ============================================================
 -- SESSIONS (ersetzt JWT)
