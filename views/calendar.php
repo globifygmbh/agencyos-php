@@ -5,13 +5,13 @@
 
     <!-- Header -->
     <div class="flex items-center gap-3 mb-6">
-        <button @click="prevMonth()" class="p-2 text-white/40 hover:text-white hover:bg-white/8 rounded-xl transition-colors">
+        <button @click="prev()" class="p-2 text-white/40 hover:text-white hover:bg-white/8 rounded-xl transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
         </button>
-        <h2 class="font-heading text-xl font-bold text-white min-w-48 text-center" x-text="monthTitle"></h2>
-        <button @click="nextMonth()" class="p-2 text-white/40 hover:text-white hover:bg-white/8 rounded-xl transition-colors">
+        <h2 class="font-heading text-xl font-bold text-white min-w-56 text-center" x-text="periodTitle"></h2>
+        <button @click="next()" class="p-2 text-white/40 hover:text-white hover:bg-white/8 rounded-xl transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
@@ -19,7 +19,21 @@
         <button @click="goToday()" class="text-sm text-white/50 hover:text-white px-3 py-2 bg-white/6 hover:bg-white/10 rounded-xl transition-colors">
             Heute
         </button>
-        <button @click="openCreate()" class="ml-auto btn-primary">
+
+        <!-- View Toggle -->
+        <div class="flex items-center gap-1 bg-white/5 rounded-xl p-1 ml-2">
+            <button @click="view = 'month'"
+                    :class="view === 'month' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Monat</button>
+            <button @click="view = 'week'"
+                    :class="view === 'week' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Woche</button>
+            <button @click="view = 'day'"
+                    :class="view === 'day' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Tag</button>
+        </div>
+
+        <button @click="openCreate()" class="ml-auto btn-primary flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -27,16 +41,13 @@
         </button>
     </div>
 
-    <!-- Calendar Grid -->
-    <div class="glass-card overflow-hidden">
-        <!-- Weekday headers -->
+    <!-- ===== MONTH VIEW ===== -->
+    <div x-show="view === 'month'" class="glass-card overflow-hidden">
         <div class="grid grid-cols-7 border-b border-white/8">
             <template x-for="day in ['Mo','Di','Mi','Do','Fr','Sa','So']" :key="day">
                 <div class="py-3 text-center text-xs font-medium text-white/30 uppercase tracking-wider" x-text="day"></div>
             </template>
         </div>
-
-        <!-- Days grid -->
         <div class="grid grid-cols-7">
             <template x-for="(cell, idx) in calendarCells" :key="idx">
                 <div class="border-b border-r border-white/6 min-h-28 p-2 transition-colors cursor-pointer hover:bg-white/3"
@@ -45,24 +56,135 @@
                         'bg-primary-500/5': cell.isToday,
                      }"
                      @click="openCreateOnDay(cell.date)">
-
-                    <div class="text-xs mb-1 w-6 h-6 flex items-center justify-center rounded-full font-medium transition-colors"
-                         :class="{
-                            'text-white/20': !cell.currentMonth,
-                            'text-white font-bold': cell.isToday,
-                            'text-white/60': cell.currentMonth && !cell.isToday,
-                         }"
+                    <div class="text-xs mb-1 w-6 h-6 flex items-center justify-center rounded-full font-medium"
+                         :class="{ 'text-white/20': !cell.currentMonth, 'text-white font-bold': cell.isToday, 'text-white/60': cell.currentMonth && !cell.isToday }"
                          :style="cell.isToday ? 'background: #009dde;' : ''"
                          x-text="cell.day"></div>
-
-                    <template x-for="ev in getEventsForDate(cell.date)" :key="ev.id">
+                    <template x-for="ev in getEventsForDate(cell.date).slice(0,3)" :key="ev.id">
                         <div class="text-xs px-1.5 py-0.5 rounded-md mb-0.5 truncate cursor-pointer hover:opacity-80 transition-opacity font-medium"
                              :style="'background:' + (ev.color || '#009dde') + '25; color:' + (ev.color || '#009dde')"
                              @click.stop="openDetail(ev)"
+                             x-text="(ev.all_day ? '' : formatTime(ev.start_date) + ' ') + ev.title"></div>
+                    </template>
+                    <template x-if="getEventsForDate(cell.date).length > 3">
+                        <div class="text-xs text-white/30 px-1" x-text="'+' + (getEventsForDate(cell.date).length - 3) + ' mehr'"></div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- ===== WEEK VIEW ===== -->
+    <div x-show="view === 'week'" class="glass-card overflow-hidden">
+        <!-- Header row with day names -->
+        <div class="grid border-b border-white/8" :style="'grid-template-columns: 60px repeat(7, 1fr)'">
+            <div class="py-3 border-r border-white/8"></div>
+            <template x-for="(day, idx) in weekDays" :key="idx">
+                <div class="py-3 text-center border-r border-white/6 last:border-0"
+                     :class="day.isToday ? 'bg-primary-500/5' : ''">
+                    <div class="text-xs text-white/40 uppercase tracking-wider" x-text="['Mo','Di','Mi','Do','Fr','Sa','So'][idx]"></div>
+                    <div class="text-xl font-bold mt-0.5 w-8 h-8 flex items-center justify-center rounded-full mx-auto"
+                         :class="day.isToday ? 'text-white' : 'text-white/70'"
+                         :style="day.isToday ? 'background: #009dde;' : ''"
+                         x-text="new Date(day.date).getDate()"></div>
+                </div>
+            </template>
+        </div>
+
+        <!-- All-day events row -->
+        <div x-show="weekDays.some(d => getEventsForDate(d.date).filter(e => e.all_day).length > 0)"
+             class="grid border-b border-white/8" :style="'grid-template-columns: 60px repeat(7, 1fr)'">
+            <div class="px-2 py-1 text-xs text-white/30 flex items-center border-r border-white/8">Ganzt.</div>
+            <template x-for="(day, idx) in weekDays" :key="idx">
+                <div class="px-1 py-1 min-h-7 border-r border-white/6 last:border-0">
+                    <template x-for="ev in getEventsForDate(day.date).filter(e => e.all_day)" :key="ev.id">
+                        <div class="text-xs px-1.5 py-0.5 rounded-md mb-0.5 truncate cursor-pointer hover:opacity-80"
+                             :style="'background:' + (ev.color || '#009dde') + '30; color:' + (ev.color || '#009dde')"
+                             @click="openDetail(ev)"
                              x-text="ev.title"></div>
                     </template>
                 </div>
             </template>
+        </div>
+
+        <!-- Hourly grid -->
+        <div class="overflow-y-auto" style="max-height: 600px;">
+            <div class="grid" :style="'grid-template-columns: 60px repeat(7, 1fr)'">
+                <!-- Hours column + day columns -->
+                <template x-for="hour in hours" :key="hour">
+                    <!-- Time label -->
+                    <div class="px-2 py-1 text-xs text-white/25 border-b border-white/5 border-r border-white/8 h-14 flex items-start pt-1"
+                         x-text="hour.toString().padStart(2,'0') + ':00'"></div>
+                    <!-- Day cells for this hour -->
+                    <template x-for="(day, dayIdx) in weekDays" :key="dayIdx">
+                        <div class="border-b border-r border-white/5 last:border-r-0 h-14 relative cursor-pointer hover:bg-white/2 transition-colors"
+                             :class="day.isToday ? 'bg-primary-500/3' : ''"
+                             @click="openCreateOnDayTime(day.date, hour)">
+                            <template x-for="ev in getEventsForDateHour(day.date, hour)" :key="ev.id">
+                                <div class="absolute inset-x-0.5 top-0.5 px-1.5 py-0.5 rounded-lg text-xs font-medium truncate cursor-pointer hover:opacity-80 z-10"
+                                     :style="'background:' + (ev.color || '#009dde') + '30; color:' + (ev.color || '#009dde') + '; border-left: 3px solid ' + (ev.color || '#009dde')"
+                                     @click.stop="openDetail(ev)"
+                                     x-text="formatTime(ev.start_date) + ' ' + ev.title"></div>
+                            </template>
+                            <!-- Current time indicator -->
+                            <template x-if="day.isToday && hour === currentHour">
+                                <div class="absolute left-0 right-0 z-20" :style="'top: ' + currentMinPct + '%; background: #ef4444;'" style="height: 2px;">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-red-400 -mt-1 -ml-1"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DAY VIEW ===== -->
+    <div x-show="view === 'day'">
+        <!-- All-day events -->
+        <template x-if="getEventsForDate(currentDay).filter(e => e.all_day).length > 0">
+            <div class="glass-card p-3 mb-3 flex flex-wrap gap-2">
+                <span class="text-xs text-white/40 self-center mr-2">Ganztägig:</span>
+                <template x-for="ev in getEventsForDate(currentDay).filter(e => e.all_day)" :key="ev.id">
+                    <div class="text-xs px-2.5 py-1 rounded-full cursor-pointer hover:opacity-80"
+                         :style="'background:' + (ev.color || '#009dde') + '25; color:' + (ev.color || '#009dde')"
+                         @click="openDetail(ev)"
+                         x-text="ev.title"></div>
+                </template>
+            </div>
+        </template>
+
+        <!-- Hourly -->
+        <div class="glass-card overflow-hidden">
+            <div class="overflow-y-auto" style="max-height: 600px;">
+                <template x-for="hour in hours" :key="hour">
+                    <div class="flex border-b border-white/5 hover:bg-white/2 transition-colors group relative"
+                         @click="openCreateOnDayTime(currentDay, hour)">
+                        <div class="w-16 flex-shrink-0 px-3 py-3 text-xs text-white/25 border-r border-white/8"
+                             x-text="hour.toString().padStart(2,'0') + ':00'"></div>
+                        <div class="flex-1 min-h-14 relative px-2">
+                            <template x-for="ev in getEventsForDateHour(currentDay, hour)" :key="ev.id">
+                                <div class="my-0.5 px-2.5 py-1.5 rounded-xl text-xs font-medium cursor-pointer hover:opacity-80"
+                                     :style="'background:' + (ev.color || '#009dde') + '25; color:' + (ev.color || '#009dde') + '; border-left: 3px solid ' + (ev.color || '#009dde')"
+                                     @click.stop="openDetail(ev)">
+                                    <span class="font-semibold" x-text="formatTime(ev.start_date)"></span>
+                                    <span class="ml-1" x-text="ev.title"></span>
+                                    <template x-if="ev.location">
+                                        <span class="ml-1 text-white/50" x-text="'· 📍 ' + ev.location"></span>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                        <!-- Current time indicator -->
+                        <template x-if="currentDay === todayStr && hour === currentHour">
+                            <div class="absolute left-16 right-0 z-20 flex items-center" :style="'top: ' + currentMinPct + '%;'">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-400 flex-shrink-0"></div>
+                                <div class="flex-1 h-0.5 bg-red-400 opacity-70"></div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 
@@ -140,17 +262,50 @@
 <script>
 function calendarApp() {
     return {
-        events: [], year: new Date().getFullYear(), month: new Date().getMonth(),
-        modal: false, isNew: true, currentEvent: null, form: {},
+        events: [],
+        view: 'month',
+        year: new Date().getFullYear(),
+        month: new Date().getMonth(),
+        weekStart: null,   // Monday of current week
+        currentDay: new Date().toISOString().split('T')[0],
+        todayStr: new Date().toISOString().split('T')[0],
+        hours: Array.from({length: 24}, (_, i) => i),
+        currentHour: new Date().getHours(),
+        currentMinPct: (new Date().getMinutes() / 60) * 100,
+        modal: false,
+        isNew: true,
+        currentEvent: null,
+        form: {},
 
-        get monthTitle() {
-            return new Date(this.year, this.month, 1).toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+        get periodTitle() {
+            if (this.view === 'month') {
+                return new Date(this.year, this.month, 1).toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+            } else if (this.view === 'week') {
+                const end = new Date(this.weekStart);
+                end.setDate(end.getDate() + 6);
+                const opts = {day:'numeric', month:'short'};
+                return new Date(this.weekStart).toLocaleDateString('de-DE', opts) + ' – ' + end.toLocaleDateString('de-DE', opts) + ' ' + end.getFullYear();
+            } else {
+                return new Date(this.currentDay).toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+            }
+        },
+
+        get weekDays() {
+            const days = [];
+            const today = this.todayStr;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(this.weekStart);
+                d.setDate(d.getDate() + i);
+                const dateStr = d.toISOString().split('T')[0];
+                days.push({ date: dateStr, isToday: dateStr === today });
+            }
+            return days;
         },
 
         get calendarCells() {
             const first = new Date(this.year, this.month, 1);
             const last  = new Date(this.year, this.month + 1, 0);
-            const today = new Date().toISOString().split('T')[0];
+            const today = this.todayStr;
             let startDow = first.getDay() || 7;
             const cells = [];
             for (let i = startDow - 1; i > 0; i--) {
@@ -176,25 +331,93 @@ function calendarApp() {
             });
         },
 
-        async init() {
-            await this.loadEvents();
-            window.addEventListener('openEventModal', e => {
-                this.openCreate();
-                if (e.detail?.prefill) Object.assign(this.form, e.detail.prefill);
+        getEventsForDateHour(date, hour) {
+            return this.events.filter(ev => {
+                if (ev.all_day) return false;
+                const start = ev.start_date || '';
+                const evDate = start.split('T')[0];
+                if (evDate !== date) return false;
+                const evHour = parseInt((start.split('T')[1] || '00:00').split(':')[0]);
+                return evHour === hour;
             });
         },
 
+        getMonday(d) {
+            const date = new Date(d);
+            const day = date.getDay() || 7;
+            date.setDate(date.getDate() - day + 1);
+            return date.toISOString().split('T')[0];
+        },
+
+        async init() {
+            this.weekStart = this.getMonday(new Date());
+            this.updateCurrentTime();
+            setInterval(() => this.updateCurrentTime(), 30000);
+            await this.loadEvents();
+        },
+
+        updateCurrentTime() {
+            const now = new Date();
+            this.currentHour = now.getHours();
+            this.currentMinPct = (now.getMinutes() / 60) * 100;
+        },
+
         async loadEvents() {
-            const from = new Date(this.year, this.month - 1, 1).toISOString().split('T')[0];
-            const to   = new Date(this.year, this.month + 2, 0).toISOString().split('T')[0];
+            let from, to;
+            if (this.view === 'month') {
+                from = new Date(this.year, this.month - 1, 1).toISOString().split('T')[0];
+                to   = new Date(this.year, this.month + 2, 0).toISOString().split('T')[0];
+            } else if (this.view === 'week') {
+                from = this.weekStart;
+                const toDate = new Date(this.weekStart);
+                toDate.setDate(toDate.getDate() + 6);
+                to = toDate.toISOString().split('T')[0];
+            } else {
+                from = this.currentDay;
+                to   = this.currentDay;
+            }
             const r = await fetch('/api/calendar?from=' + from + '&to=' + to);
             const d = await r.json();
             this.events = Array.isArray(d) ? d : [];
         },
 
-        prevMonth() { if (this.month === 0) { this.month = 11; this.year--; } else this.month--; this.loadEvents(); },
-        nextMonth() { if (this.month === 11) { this.month = 0; this.year++; } else this.month++; this.loadEvents(); },
-        goToday() { this.year = new Date().getFullYear(); this.month = new Date().getMonth(); this.loadEvents(); },
+        prev() {
+            if (this.view === 'month') {
+                if (this.month === 0) { this.month = 11; this.year--; } else this.month--;
+            } else if (this.view === 'week') {
+                const d = new Date(this.weekStart);
+                d.setDate(d.getDate() - 7);
+                this.weekStart = d.toISOString().split('T')[0];
+            } else {
+                const d = new Date(this.currentDay);
+                d.setDate(d.getDate() - 1);
+                this.currentDay = d.toISOString().split('T')[0];
+            }
+            this.loadEvents();
+        },
+
+        next() {
+            if (this.view === 'month') {
+                if (this.month === 11) { this.month = 0; this.year++; } else this.month++;
+            } else if (this.view === 'week') {
+                const d = new Date(this.weekStart);
+                d.setDate(d.getDate() + 7);
+                this.weekStart = d.toISOString().split('T')[0];
+            } else {
+                const d = new Date(this.currentDay);
+                d.setDate(d.getDate() + 1);
+                this.currentDay = d.toISOString().split('T')[0];
+            }
+            this.loadEvents();
+        },
+
+        goToday() {
+            this.year = new Date().getFullYear();
+            this.month = new Date().getMonth();
+            this.weekStart = this.getMonday(new Date());
+            this.currentDay = this.todayStr;
+            this.loadEvents();
+        },
 
         openCreate() {
             const today = new Date().toISOString().slice(0, 16);
@@ -204,6 +427,13 @@ function calendarApp() {
 
         openCreateOnDay(date) {
             this.form = { title: '', description: '', all_day: true, start_date: date, end_date: date, category: '', color: '#009dde', location: '' };
+            this.isNew = true; this.currentEvent = null; this.modal = true;
+        },
+
+        openCreateOnDayTime(date, hour) {
+            const h = hour.toString().padStart(2, '0');
+            const h2 = Math.min(hour + 1, 23).toString().padStart(2, '0');
+            this.form = { title: '', description: '', all_day: false, start_date: date + 'T' + h + ':00', end_date: date + 'T' + h2 + ':00', category: '', color: '#009dde', location: '' };
             this.isNew = true; this.currentEvent = null; this.modal = true;
         },
 
@@ -227,6 +457,12 @@ function calendarApp() {
             if (!confirm('Event löschen?')) return;
             await fetch('/api/calendar/' + this.currentEvent.id, { method: 'DELETE' });
             this.modal = false; await this.loadEvents();
+        },
+
+        formatTime(dt) {
+            if (!dt) return '';
+            const t = dt.includes('T') ? dt.split('T')[1] : '';
+            return t ? t.slice(0, 5) : '';
         }
     };
 }

@@ -314,62 +314,92 @@ require __DIR__ . '/_layout.php';
          class="fixed inset-0 z-50 flex items-center justify-center p-4"
          style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="inviteModal = false">
-        <div class="glass-card rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
-            <div class="px-6 py-4 border-b border-white/8">
-                <h2 class="font-heading font-semibold text-white">Mitarbeiter einladen</h2>
+        <div class="glass-card rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto" @click.stop>
+            <div class="px-6 py-4 border-b border-white/8 sticky top-0 glass-card">
+                <h2 class="font-heading font-semibold text-white">Mitarbeiter hinzufügen</h2>
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-white/40 mb-1.5">Vorname</label>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Vorname *</label>
                         <input x-model="inviteForm.first_name" type="text" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-white/40 mb-1.5">Nachname</label>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Nachname *</label>
                         <input x-model="inviteForm.last_name" type="text" class="input-field">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Benutzername *</label>
-                    <input x-model="inviteForm.username" type="text" class="input-field">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Benutzername *</label>
+                        <input x-model="inviteForm.username" type="text" class="input-field" placeholder="max.mustermann">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">E-Mail *</label>
+                        <input x-model="inviteForm.email" type="email" class="input-field" placeholder="max@firma.de">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">E-Mail *</label>
-                    <input x-model="inviteForm.email" type="email" class="input-field">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Telefon</label>
+                        <input x-model="inviteForm.phone" type="tel" class="input-field" placeholder="+49 123 456789">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Geburtstag</label>
+                        <input x-model="inviteForm.birthday" type="date" class="input-field">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-white/40 mb-1.5">Rolle</label>
                         <select x-model="inviteForm.role" class="input-field">
                             <option value="EMPLOYEE">Mitarbeiter</option>
+                            <option value="ACCOUNT_MANAGER">Account Manager</option>
+                            <option value="BUCHHALTUNG">Buchhaltung</option>
                             <option value="MANAGER">Manager</option>
                             <option value="CHEF">Chef / Admin</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-white/40 mb-1.5">Position</label>
-                        <input x-model="inviteForm.position" type="text" class="input-field" placeholder="z.B. Designer">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Position / Jobtitel</label>
+                        <input x-model="inviteForm.position" type="text" class="input-field" placeholder="z.B. Senior Designer">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Startdatum</label>
+                        <input x-model="inviteForm.start_date" type="date" class="input-field">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Profilfarbe</label>
+                        <input x-model="inviteForm.color" type="color" class="w-full h-10 bg-white/8 border border-white/10 rounded-xl px-2 py-1">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-white/40 mb-1.5">Wochenstunden</label>
-                        <input x-model="inviteForm.weekly_hours" type="number" class="input-field" placeholder="40">
+                        <input x-model="inviteForm.weekly_hours" type="number" step="0.5" class="input-field" placeholder="40">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-white/40 mb-1.5">Urlaubstage</label>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Urlaubstage / Jahr</label>
                         <input x-model="inviteForm.vacation_days" type="number" class="input-field" placeholder="28">
                     </div>
                 </div>
                 <template x-if="inviteResult">
                     <div class="bg-green-900/20 border border-green-800/50 rounded-xl p-3 text-xs text-green-400">
-                        ✅ Benutzer erstellt! Login: <strong x-text="inviteResult.username"></strong> / Passwort per E-Mail gesendet.
+                        ✅ Benutzer erstellt! Login: <strong x-text="inviteResult.username"></strong> — Zugangsdaten per E-Mail gesendet.
                     </div>
                 </template>
+                <template x-if="inviteError">
+                    <div class="bg-red-900/20 border border-red-800/50 rounded-xl p-3 text-xs text-red-400" x-text="inviteError"></div>
+                </template>
             </div>
-            <div class="px-6 py-4 border-t border-white/8 flex gap-3">
-                <button @click="sendInvite()" class="btn-primary">Erstellen & Einladen</button>
-                <button @click="inviteModal = false; inviteResult = null" class="btn-ghost">Schließen</button>
+            <div class="px-6 py-4 border-t border-white/8 flex gap-3 sticky bottom-0 glass-card">
+                <button @click="sendInvite()" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                    Erstellen & Einladen
+                </button>
+                <button @click="inviteModal = false; inviteResult = null; inviteError = null" class="btn-ghost">Schließen</button>
             </div>
         </div>
     </div>
@@ -379,8 +409,8 @@ require __DIR__ . '/_layout.php';
          class="fixed inset-0 z-50 flex items-center justify-center p-4"
          style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="editUserModal = false">
-        <div class="glass-card rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
-            <div class="px-6 py-4 border-b border-white/8">
+        <div class="glass-card rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto" @click.stop>
+            <div class="px-6 py-4 border-b border-white/8 sticky top-0 glass-card">
                 <h2 class="font-heading font-semibold text-white">Benutzer bearbeiten</h2>
             </div>
             <div class="px-6 py-4 space-y-4">
@@ -394,15 +424,33 @@ require __DIR__ . '/_layout.php';
                         <input x-model="editUserForm.last_name" type="text" class="input-field">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">E-Mail</label>
-                    <input x-model="editUserForm.email" type="email" class="input-field">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">E-Mail</label>
+                        <input x-model="editUserForm.email" type="email" class="input-field">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Telefon</label>
+                        <input x-model="editUserForm.phone" type="tel" class="input-field">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Geburtstag</label>
+                        <input x-model="editUserForm.birthday" type="date" class="input-field">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Startdatum</label>
+                        <input x-model="editUserForm.start_date" type="date" class="input-field">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-white/40 mb-1.5">Rolle</label>
                         <select x-model="editUserForm.role" class="input-field">
                             <option value="EMPLOYEE">Mitarbeiter</option>
+                            <option value="ACCOUNT_MANAGER">Account Manager</option>
+                            <option value="BUCHHALTUNG">Buchhaltung</option>
                             <option value="MANAGER">Manager</option>
                             <option value="CHEF">Chef / Admin</option>
                         </select>
@@ -415,19 +463,25 @@ require __DIR__ . '/_layout.php';
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-white/40 mb-1.5">Wochenstunden</label>
-                        <input x-model="editUserForm.weekly_hours" type="number" class="input-field">
+                        <input x-model="editUserForm.weekly_hours" type="number" step="0.5" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-white/40 mb-1.5">Urlaubstage</label>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Urlaubstage / Jahr</label>
                         <input x-model="editUserForm.vacation_days" type="number" class="input-field">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Farbe</label>
-                    <input x-model="editUserForm.color" type="color" class="w-full h-10 rounded-xl border border-white/10 bg-transparent p-1">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Verbrauchte Urlaubstage</label>
+                        <input x-model="editUserForm.vacation_days_used" type="number" class="input-field">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Profilfarbe</label>
+                        <input x-model="editUserForm.color" type="color" class="w-full h-10 rounded-xl border border-white/10 bg-transparent p-1">
+                    </div>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-white/8 flex gap-3">
+            <div class="px-6 py-4 border-t border-white/8 flex gap-3 sticky bottom-0 glass-card">
                 <button @click="saveUserEdit()" class="btn-primary">Speichern</button>
                 <button @click="editUserModal = false" class="btn-ghost">Abbrechen</button>
             </div>
@@ -494,8 +548,9 @@ function adminApp() {
         auditLogs: [],
         workloadData: [],
         inviteModal: false,
-        inviteForm: { first_name: '', last_name: '', username: '', email: '', role: 'EMPLOYEE', position: '', weekly_hours: 40, vacation_days: 28 },
+        inviteForm: { first_name: '', last_name: '', username: '', email: '', phone: '', birthday: '', role: 'EMPLOYEE', position: '', start_date: '', color: '#009dde', weekly_hours: 40, vacation_days: 28 },
         inviteResult: null,
+        inviteError: null,
         editUserModal: false,
         editUserForm: {},
         editUserId: null,
@@ -553,10 +608,14 @@ function adminApp() {
                 first_name: u.first_name || '',
                 last_name: u.last_name || '',
                 email: u.email || '',
+                phone: u.phone || '',
+                birthday: (u.birthday || '').split('T')[0],
                 role: u.role || 'EMPLOYEE',
                 position: u.position || '',
+                start_date: (u.start_date || '').split('T')[0],
                 weekly_hours: u.weekly_hours || 40,
                 vacation_days: u.vacation_days || 28,
+                vacation_days_used: u.vacation_days_used || 0,
                 color: u.color || '#009dde',
             };
             this.editUserModal = true;
@@ -574,6 +633,7 @@ function adminApp() {
         },
 
         async sendInvite() {
+            this.inviteError = null;
             const r = await fetch('/api/users', {
                 method: 'POST', headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
@@ -584,7 +644,7 @@ function adminApp() {
             if (r.ok) {
                 this.inviteResult = await r.json();
                 await this.loadUsers();
-            } else { const e = await r.json(); alert(e.detail || 'Fehler'); }
+            } else { const e = await r.json(); this.inviteError = e.detail || 'Fehler beim Erstellen'; }
         },
 
         async loadStatuses() {
