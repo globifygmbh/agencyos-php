@@ -33,12 +33,138 @@
                     class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Tag</button>
         </div>
 
-        <button @click="openCreate()" class="ml-auto btn-primary flex items-center gap-2">
+        <!-- iCloud Sync Button -->
+        <button @click="showSyncModal = true"
+                class="ml-auto flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:text-white hover:bg-white/8 transition-colors text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Sync
+        </button>
+
+        <button @click="openCreate()" class="btn-primary flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
             Neues Event
         </button>
+    </div>
+
+    <!-- ===== iCLOUD SYNC MODAL ===== -->
+    <div x-show="showSyncModal" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center"
+         style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);"
+         @click.self="showSyncModal = false">
+        <div class="glass-card rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-heading text-lg font-bold text-white">Kalender-Synchronisation</h3>
+                <button @click="showSyncModal = false" class="text-white/30 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- AgencyOS als iCal abonnieren -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(0,157,222,0.2);">
+                        <svg class="w-4 h-4" style="color:#009dde" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-white">AgencyOS → iPhone/iPad</p>
+                        <p class="text-xs text-white/40">Deine Events in Apple Kalender abonnieren</p>
+                    </div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 space-y-2 text-sm text-white/70">
+                    <p class="font-medium text-white/90">So verbindest du AgencyOS mit deinem Apple Kalender:</p>
+                    <ol class="space-y-1.5 list-decimal list-inside text-white/60">
+                        <li>Öffne <strong class="text-white/80">Einstellungen → Kalender → Accounts → Account hinzufügen</strong></li>
+                        <li>Tippe auf <strong class="text-white/80">„Andere"</strong> → <strong class="text-white/80">„Kalender-Abo hinzufügen"</strong></li>
+                        <li>Füge die URL unten ein und tippe auf <strong class="text-white/80">„Weiter"</strong></li>
+                        <li>Bestätige mit <strong class="text-white/80">„Abonnieren"</strong></li>
+                    </ol>
+                </div>
+                <div class="mt-3 flex gap-2">
+                    <input type="text" readonly
+                           :value="icalExportUrl"
+                           class="input-field flex-1 font-mono text-xs text-white/60"
+                           @click="$el.select()">
+                    <button @click="copyIcalUrl()"
+                            class="btn-ghost px-3 py-2 text-xs flex-shrink-0">
+                        <template x-if="!icalCopied">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </template>
+                        <template x-if="icalCopied">
+                            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </template>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-white/8 my-5"></div>
+
+            <!-- iCloud → AgencyOS (externe Kalender einbinden) -->
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(52,199,89,0.15);">
+                        <svg class="w-4 h-4" style="color:#34c759" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-white">Externen Kalender einbinden</p>
+                        <p class="text-xs text-white/40">iCloud, Google oder beliebige iCal-URL</p>
+                    </div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 mb-3 text-sm text-white/60 space-y-1.5">
+                    <p class="font-medium text-white/80">iCloud-URL ermitteln (iOS):</p>
+                    <ol class="space-y-1 list-decimal list-inside">
+                        <li>Öffne <strong class="text-white/70">iCloud.com → Kalender</strong></li>
+                        <li>Klicke neben deinem Kalender auf das <strong class="text-white/70">Teilen-Symbol</strong></li>
+                        <li>Aktiviere <strong class="text-white/70">„Öffentlichen Kalender"</strong></li>
+                        <li>Kopiere die <strong class="text-white/70">webcal://...</strong> URL</li>
+                    </ol>
+                </div>
+
+                <template x-for="(cal, idx) in syncCalendars" :key="idx">
+                    <div class="flex items-center gap-2 mb-2">
+                        <input :value="cal.name" @input="cal.name = $event.target.value"
+                               type="text" placeholder="Bezeichnung (z.B. Privat)"
+                               class="input-field w-32 flex-shrink-0">
+                        <input :value="cal.url" @input="cal.url = $event.target.value"
+                               type="text" placeholder="webcal:// oder https://..."
+                               class="input-field flex-1">
+                        <input :value="cal.color" @input="cal.color = $event.target.value"
+                               type="color" class="w-8 h-8 rounded-lg cursor-pointer border border-white/10 bg-transparent flex-shrink-0">
+                        <button @click="syncCalendars.splice(idx, 1)"
+                                class="text-white/30 hover:text-red-400 transition-colors flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </template>
+
+                <button @click="syncCalendars.push({name:'',url:'',color:'#34c759'})"
+                        class="w-full mt-1 py-2 rounded-xl border border-dashed border-white/15 text-white/40 hover:text-white/70 hover:border-white/30 transition-colors text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Kalender hinzufügen
+                </button>
+            </div>
+
+            <!-- Save -->
+            <div class="flex justify-end gap-2 mt-5">
+                <button @click="showSyncModal = false" class="btn-ghost text-sm px-4 py-2">Abbrechen</button>
+                <button @click="saveSyncSettings()" class="btn-primary text-sm px-4 py-2 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Speichern
+                </button>
+            </div>
+
+            <!-- Sync status -->
+            <p x-show="syncSaved" x-cloak class="text-xs text-green-400 text-center mt-3">✓ Einstellungen gespeichert!</p>
+        </div>
     </div>
 
     <!-- ===== MONTH VIEW ===== -->
@@ -276,6 +402,11 @@ function calendarApp() {
         isNew: true,
         currentEvent: null,
         form: {},
+        showSyncModal: false,
+        syncCalendars: [],
+        syncSaved: false,
+        icalCopied: false,
+        icalExportUrl: window.location.origin + '/api/calendar/export.ics',
 
         get periodTitle() {
             if (this.view === 'month') {
@@ -354,6 +485,32 @@ function calendarApp() {
             this.updateCurrentTime();
             setInterval(() => this.updateCurrentTime(), 30000);
             await this.loadEvents();
+            this.loadSyncSettings();
+        },
+
+        loadSyncSettings() {
+            fetch('/api/calendar/sync-settings').then(r => r.json()).then(d => {
+                if (d && Array.isArray(d.calendars)) this.syncCalendars = d.calendars;
+            }).catch(() => {});
+        },
+
+        async saveSyncSettings() {
+            const r = await fetch('/api/calendar/sync-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ calendars: this.syncCalendars })
+            });
+            if (r.ok) {
+                this.syncSaved = true;
+                setTimeout(() => { this.syncSaved = false; }, 3000);
+            }
+        },
+
+        copyIcalUrl() {
+            navigator.clipboard.writeText(this.icalExportUrl).then(() => {
+                this.icalCopied = true;
+                setTimeout(() => { this.icalCopied = false; }, 2000);
+            });
         },
 
         updateCurrentTime() {
