@@ -6,7 +6,7 @@ require __DIR__ . '/_layout.php';
 
 <div x-data="projectDetail('<?= htmlspecialchars($projectId) ?>')" x-init="init()">
 
-    <div x-show="loading" class="text-gray-500 text-sm">Laden…</div>
+    <div x-show="loading" class="text-white/50 text-sm">Laden…</div>
 
     <div x-show="!loading && project">
         <!-- Header -->
@@ -23,47 +23,47 @@ require __DIR__ . '/_layout.php';
                           }"
                           x-text="{active:'Aktiv',completed:'Abgeschlossen',on_hold:'Pausiert',cancelled:'Abgebrochen'}[project.status] || project.status"></span>
                 </div>
-                <p class="text-gray-400 text-sm" x-text="project.description || ''"></p>
+                <p class="text-white/40 text-sm" x-text="project.description || ''"></p>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="editModal = true"
-                        class="bg-gray-800 hover:bg-gray-700 text-white text-sm px-3 py-2 rounded-xl transition-colors">
+                        class="btn-ghost text-sm px-3 py-2">
                     Bearbeiten
                 </button>
-                <a href="/projects" class="text-gray-400 hover:text-white text-sm">← Zurück</a>
+                <a href="/projects" class="text-white/40 hover:text-white text-sm">← Zurück</a>
             </div>
         </div>
 
         <!-- Stats -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div class="text-xs text-gray-500 mb-1">Fortschritt</div>
+            <div class="bg-white/5 border border-white/8 rounded-xl p-4">
+                <div class="text-xs text-white/50 mb-1">Fortschritt</div>
                 <div class="text-xl font-bold text-white" x-text="(project.progress || 0) + '%'"></div>
-                <div class="h-1 bg-gray-800 rounded-full mt-2">
-                    <div class="h-full rounded-full bg-brand-500" :style="'width:' + (project.progress || 0) + '%'"></div>
+                <div class="h-1 bg-white/8 rounded-full mt-2">
+                    <div class="h-full rounded-full" style="background: #009dde;" :style="'width:' + (project.progress || 0) + '%; background: #009dde;'"></div>
                 </div>
             </div>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div class="text-xs text-gray-500 mb-1">Aufgaben</div>
+            <div class="bg-white/5 border border-white/8 rounded-xl p-4">
+                <div class="text-xs text-white/50 mb-1">Aufgaben</div>
                 <div class="text-xl font-bold text-white" x-text="tasks.length"></div>
             </div>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div class="text-xs text-gray-500 mb-1">Zeiterfassung</div>
+            <div class="bg-white/5 border border-white/8 rounded-xl p-4">
+                <div class="text-xs text-white/50 mb-1">Zeiterfassung</div>
                 <div class="text-xl font-bold text-white" x-text="formatDuration(totalTime)"></div>
             </div>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div class="text-xs text-gray-500 mb-1">Fälligkeitsdatum</div>
+            <div class="bg-white/5 border border-white/8 rounded-xl p-4">
+                <div class="text-xs text-white/50 mb-1">Fälligkeitsdatum</div>
                 <div class="text-xl font-bold text-white" x-text="formatDate(project.deadline) || '–'"></div>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="border-b border-gray-800 mb-6">
+        <div class="border-b border-white/10 mb-6">
             <div class="flex gap-1">
                 <template x-for="tab in ['tasks','milestones','files','team','time']" :key="tab">
                     <button @click="activeTab = tab"
                             class="px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px"
-                            :class="activeTab === tab ? 'text-brand-400 border-brand-500' : 'text-gray-400 border-transparent hover:text-white'"
+                            :class="activeTab === tab ? 'text-[#009dde] border-[#009dde]' : 'text-white/40 border-transparent hover:text-white'"
                             x-text="{tasks:'Aufgaben',milestones:'Meilensteine',files:'Dateien',team:'Team',time:'Zeit'}[tab]"></button>
                 </template>
             </div>
@@ -72,50 +72,48 @@ require __DIR__ . '/_layout.php';
         <!-- Tasks Tab -->
         <div x-show="activeTab === 'tasks'" class="space-y-3">
             <div class="flex justify-end mb-3">
-                <button @click="openCreateTask()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm px-3 py-2 rounded-xl transition-colors">
+                <button @click="openCreateTask()" class="btn-primary text-sm px-3 py-2">
                     + Aufgabe
                 </button>
             </div>
             <template x-for="task in tasks" :key="task.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-center gap-4">
                     <div class="w-3 h-3 rounded-full flex-shrink-0" :style="'background:' + (task.status_color || '#6b7280')"></div>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-white" x-text="task.title"></div>
-                        <div class="text-xs text-gray-500 mt-0.5" x-text="task.status_name || '–'"></div>
+                        <div class="text-xs text-white/50 mt-0.5" x-text="task.status_name || '–'"></div>
                     </div>
-                    <div class="text-xs text-gray-500" x-text="task.assignee_name || '–'"></div>
+                    <div class="text-xs text-white/50" x-text="task.assignee_name || '–'"></div>
                     <template x-if="task.deadline">
-                        <div class="text-xs text-gray-500" x-text="formatDate(task.deadline)"></div>
+                        <div class="text-xs text-white/50" x-text="formatDate(task.deadline)"></div>
                     </template>
                 </div>
             </template>
             <template x-if="tasks.length === 0">
-                <p class="text-gray-500 text-sm text-center py-8">Keine Aufgaben in diesem Projekt</p>
+                <p class="text-white/50 text-sm text-center py-8">Keine Aufgaben in diesem Projekt</p>
             </template>
         </div>
 
         <!-- Milestones Tab -->
         <div x-show="activeTab === 'milestones'" class="space-y-3">
             <div class="flex justify-end mb-3">
-                <button @click="openCreateMilestone()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm px-3 py-2 rounded-xl transition-colors">
+                <button @click="openCreateMilestone()" class="btn-primary text-sm px-3 py-2">
                     + Meilenstein
                 </button>
             </div>
             <template x-for="m in milestones" :key="m.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-center gap-4">
                     <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
-                         :class="m.is_completed ? 'bg-green-500' : 'bg-gray-700'">
+                         :class="m.is_completed ? 'bg-green-500' : 'bg-white/8'">
                         <svg x-show="m.is_completed" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                         </svg>
                     </div>
                     <div class="flex-1">
                         <div class="text-sm font-medium text-white" x-text="m.title"></div>
-                        <div class="text-xs text-gray-500 mt-0.5" x-text="m.description || ''"></div>
+                        <div class="text-xs text-white/50 mt-0.5" x-text="m.description || ''"></div>
                     </div>
-                    <div class="text-xs text-gray-500" x-text="formatDate(m.due_date) || '–'"></div>
+                    <div class="text-xs text-white/50" x-text="formatDate(m.due_date) || '–'"></div>
                     <template x-if="!m.is_completed">
                         <button @click="completeMilestone(m.id)"
                                 class="text-xs text-green-400 hover:text-green-300 px-2 py-1 rounded-lg bg-green-900/20">
@@ -129,13 +127,14 @@ require __DIR__ . '/_layout.php';
         <!-- Team Tab -->
         <div x-show="activeTab === 'team'" class="space-y-3">
             <template x-for="m in teamMembers" :key="m.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-                    <div class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                         style="background: #009dde;">
                         <span x-text="(m.first_name || '?').charAt(0).toUpperCase()"></span>
                     </div>
                     <div class="flex-1">
                         <div class="text-sm font-medium text-white" x-text="m.first_name + ' ' + m.last_name"></div>
-                        <div class="text-xs text-gray-500" x-text="m.role_in_project || m.role || ''"></div>
+                        <div class="text-xs text-white/50" x-text="m.role_in_project || m.role || ''"></div>
                     </div>
                 </div>
             </template>
@@ -144,19 +143,19 @@ require __DIR__ . '/_layout.php';
         <!-- Files Tab -->
         <div x-show="activeTab === 'files'" class="space-y-3">
             <div class="mb-3">
-                <label class="bg-brand-500 hover:bg-brand-600 text-white text-sm px-3 py-2 rounded-xl cursor-pointer transition-colors">
+                <label class="btn-primary cursor-pointer">
                     Datei hochladen
                     <input type="file" class="hidden" @change="uploadFile($event)">
                 </label>
             </div>
             <template x-for="f in files" :key="f.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-center gap-4">
+                    <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                     </svg>
                     <div class="flex-1 min-w-0">
-                        <a :href="f.file_url" target="_blank" class="text-sm text-brand-400 hover:text-brand-300 truncate block" x-text="f.file_name"></a>
-                        <div class="text-xs text-gray-500 mt-0.5" x-text="formatDate(f.created_at)"></div>
+                        <a :href="f.file_url" target="_blank" class="text-sm hover:opacity-80 transition-opacity truncate block" style="color: #009dde;" x-text="f.file_name"></a>
+                        <div class="text-xs text-white/50 mt-0.5" x-text="formatDate(f.created_at)"></div>
                     </div>
                 </div>
             </template>
@@ -165,10 +164,10 @@ require __DIR__ . '/_layout.php';
         <!-- Time Tab -->
         <div x-show="activeTab === 'time'" class="space-y-3">
             <template x-for="entry in timeEntries" :key="entry.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-center gap-4">
                     <div class="flex-1 min-w-0">
                         <div class="text-sm text-white" x-text="entry.description || 'Kein Titel'"></div>
-                        <div class="text-xs text-gray-500 mt-0.5" x-text="entry.user_name + ' · ' + formatDate(entry.start_time)"></div>
+                        <div class="text-xs text-white/50 mt-0.5" x-text="entry.user_name + ' · ' + formatDate(entry.start_time)"></div>
                     </div>
                     <div class="text-sm font-medium text-white" x-text="formatDuration(entry.duration || 0)"></div>
                 </div>
@@ -181,12 +180,13 @@ require __DIR__ . '/_layout.php';
 
     <!-- Edit Modal -->
     <div x-show="editModal" x-cloak
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="editModal = false">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl" @click.stop>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Projekt bearbeiten</h2>
-                <button @click="editModal = false" class="text-gray-400 hover:text-white">
+        <div class="glass-card rounded-2xl w-full max-w-lg shadow-2xl" @click.stop>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <h2 class="font-heading font-semibold text-white">Projekt bearbeiten</h2>
+                <button @click="editModal = false" class="text-white/40 hover:text-white">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -194,20 +194,17 @@ require __DIR__ . '/_layout.php';
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Name</label>
-                    <input x-model="editForm.name" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Name</label>
+                    <input x-model="editForm.name" type="text" class="input-field">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Beschreibung</label>
-                    <textarea x-model="editForm.description" rows="2"
-                              class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Beschreibung</label>
+                    <textarea x-model="editForm.description" rows="2" class="input-field resize-none"></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Status</label>
-                        <select x-model="editForm.status"
-                                class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Status</label>
+                        <select x-model="editForm.status" class="input-field">
                             <option value="active">Aktiv</option>
                             <option value="on_hold">Pausiert</option>
                             <option value="completed">Abgeschlossen</option>
@@ -215,65 +212,59 @@ require __DIR__ . '/_layout.php';
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Farbe</label>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Farbe</label>
                         <input x-model="editForm.color" type="color"
-                               class="w-full h-10 bg-gray-800 border border-gray-700 rounded-xl px-2 py-1">
+                               class="w-full h-10 bg-white/8 border border-white/10 rounded-xl px-2 py-1">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Fälligkeitsdatum</label>
-                        <input x-model="editForm.deadline" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Fälligkeitsdatum</label>
+                        <input x-model="editForm.deadline" type="date" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Budget (€)</label>
-                        <input x-model="editForm.budget" type="number"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Budget (€)</label>
+                        <input x-model="editForm.budget" type="number" class="input-field">
                     </div>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-800 flex gap-3">
-                <button @click="saveEdit()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">
+            <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                <button @click="saveEdit()" class="btn-primary">
                     Speichern
                 </button>
-                <button @click="editModal = false" class="text-gray-400 hover:text-white text-sm">Abbrechen</button>
+                <button @click="editModal = false" class="btn-ghost">Abbrechen</button>
             </div>
         </div>
     </div>
 
     <!-- Milestone Modal -->
     <div x-show="milestoneModal" x-cloak
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="milestoneModal = false">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
-            <div class="px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Neuer Meilenstein</h2>
+        <div class="glass-card rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
+            <div class="px-6 py-4 border-b border-white/10">
+                <h2 class="font-heading font-semibold text-white">Neuer Meilenstein</h2>
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Titel *</label>
-                    <input x-model="milestoneForm.title" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Titel *</label>
+                    <input x-model="milestoneForm.title" type="text" class="input-field">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Beschreibung</label>
-                    <input x-model="milestoneForm.description" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Beschreibung</label>
+                    <input x-model="milestoneForm.description" type="text" class="input-field">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Fälligkeitsdatum</label>
-                    <input x-model="milestoneForm.due_date" type="date"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Fälligkeitsdatum</label>
+                    <input x-model="milestoneForm.due_date" type="date" class="input-field">
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-800 flex gap-3">
-                <button @click="saveMilestone()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">
+            <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                <button @click="saveMilestone()" class="btn-primary">
                     Erstellen
                 </button>
-                <button @click="milestoneModal = false" class="text-gray-400 hover:text-white text-sm">Abbrechen</button>
+                <button @click="milestoneModal = false" class="btn-ghost">Abbrechen</button>
             </div>
         </div>
     </div>

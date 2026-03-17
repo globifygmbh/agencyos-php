@@ -25,6 +25,50 @@ class UserRoutes
             return self::json($response, $users);
         });
 
+        // GET /api/users/me/preferences
+        $app->get('/api/users/me/preferences', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            $pref = Database::fetchOne('SELECT notification_prefs FROM users WHERE id=?', [$user['id']]);
+            $data = json_decode($pref['notification_prefs'] ?? '{}', true) ?: [];
+            return self::json($response, $data);
+        });
+
+        // POST /api/users/me/preferences
+        $app->post('/api/users/me/preferences', function (Request $request, Response $response) {
+            $user    = Security::getCurrentUser($request);
+            $body    = (array) $request->getParsedBody();
+            $current = json_decode(Database::fetchOne('SELECT notification_prefs FROM users WHERE id=?', [$user['id']])['notification_prefs'] ?? '{}', true) ?: [];
+            $merged  = array_merge($current, $body);
+            Database::update('users', ['notification_prefs' => json_encode($merged), 'updated_at' => Helpers::now()], ['id' => $user['id']]);
+            return self::json($response, $merged);
+        });
+
+        // GET /api/notifications/unread
+        $app->get('/api/notifications/unread', function (Request $request, Response $response) {
+            $user  = Security::getCurrentUser($request);
+            $count = (int)(Database::fetchOne('SELECT COUNT(*) as c FROM notifications WHERE user_id=? AND is_read=0', [$user['id']])['c'] ?? 0);
+            return self::json($response, ['count' => $count]);
+        });
+
+        // GET /api/settings/custom-links
+        $app->get('/api/settings/custom-links', function (Request $request, Response $response) {
+            $user  = Security::getCurrentUser($request);
+            $pref  = json_decode(Database::fetchOne('SELECT notification_prefs FROM users WHERE id=?', [$user['id']])['notification_prefs'] ?? '{}', true) ?: [];
+            return self::json($response, $pref['custom_links'] ?? []);
+        });
+
+        // POST /api/settings/custom-links
+        $app->post('/api/settings/custom-links', function (Request $request, Response $response) {
+            $user    = Security::getCurrentUser($request);
+            $body    = (array) $request->getParsedBody();
+            $current = json_decode(Database::fetchOne('SELECT notification_prefs FROM users WHERE id=?', [$user['id']])['notification_prefs'] ?? '{}', true) ?: [];
+            $links   = $current['custom_links'] ?? [];
+            $links[] = ['label' => $body['label'] ?? '', 'url' => $body['url'] ?? '', 'emoji' => $body['emoji'] ?? '🔗'];
+            $current['custom_links'] = $links;
+            Database::update('users', ['notification_prefs' => json_encode($current), 'updated_at' => Helpers::now()], ['id' => $user['id']]);
+            return self::json($response, $links, 201);
+        });
+
         // GET /api/users/me/menu-items
         $app->get('/api/users/me/menu-items', function (Request $request, Response $response) {
             $user  = Security::getCurrentUser($request);

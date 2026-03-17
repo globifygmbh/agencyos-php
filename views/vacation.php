@@ -7,20 +7,20 @@ require __DIR__ . '/_layout.php';
 
     <!-- Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" x-show="stats">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <div class="text-xs text-gray-500 mb-1">Urlaubstage gesamt</div>
+        <div class="glass-card rounded-2xl p-5">
+            <div class="text-xs text-white/50 mb-1">Urlaubstage gesamt</div>
             <div class="text-2xl font-bold text-white" x-text="stats.total_days || 0"></div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <div class="text-xs text-gray-500 mb-1">Genommen</div>
+        <div class="glass-card rounded-2xl p-5">
+            <div class="text-xs text-white/50 mb-1">Genommen</div>
             <div class="text-2xl font-bold text-white" x-text="stats.used_days || 0"></div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <div class="text-xs text-gray-500 mb-1">Verbleibend</div>
+        <div class="glass-card rounded-2xl p-5">
+            <div class="text-xs text-white/50 mb-1">Verbleibend</div>
             <div class="text-2xl font-bold text-green-400" x-text="stats.remaining_days || 0"></div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <div class="text-xs text-gray-500 mb-1">Ausstehend</div>
+        <div class="glass-card rounded-2xl p-5">
+            <div class="text-xs text-white/50 mb-1">Ausstehend</div>
             <div class="text-2xl font-bold text-yellow-400" x-text="stats.pending_days || 0"></div>
         </div>
     </div>
@@ -28,14 +28,14 @@ require __DIR__ . '/_layout.php';
     <!-- Actions + Filter -->
     <div class="flex items-center gap-3 mb-6">
         <select x-model="filterStatus" @change="loadVacations()"
-                class="bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                class="input-field text-sm rounded-xl px-3 py-2">
             <option value="">Alle</option>
             <option value="pending">Ausstehend</option>
             <option value="approved">Genehmigt</option>
             <option value="rejected">Abgelehnt</option>
         </select>
         <button @click="openCreate()"
-                class="ml-auto bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
+                class="btn-primary ml-auto flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -44,10 +44,10 @@ require __DIR__ . '/_layout.php';
     </div>
 
     <!-- Vacation List -->
-    <div x-show="loading" class="text-gray-500 text-sm">Laden…</div>
+    <div x-show="loading" class="text-white/50 text-sm">Laden…</div>
     <div x-show="!loading" class="space-y-3">
         <template x-for="v in vacations" :key="v.id">
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+            <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-center gap-4">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                         <span class="text-sm font-medium text-white"
@@ -60,9 +60,9 @@ require __DIR__ . '/_layout.php';
                               }"
                               x-text="{pending:'Ausstehend',approved:'Genehmigt',rejected:'Abgelehnt'}[v.status] || v.status"></span>
                     </div>
-                    <div class="text-xs text-gray-500" x-text="v.reason || ''"></div>
+                    <div class="text-xs text-white/50" x-text="v.reason || ''"></div>
                     <template x-if="v.user_name">
-                        <div class="text-xs text-gray-600 mt-0.5" x-text="'Von: ' + v.user_name"></div>
+                        <div class="text-xs text-white/40 mt-0.5" x-text="'Von: ' + v.user_name"></div>
                     </template>
                 </div>
                 <div class="text-right">
@@ -83,60 +83,57 @@ require __DIR__ . '/_layout.php';
             </div>
         </template>
         <template x-if="!loading && vacations.length === 0">
-            <p class="text-gray-500 text-sm text-center py-8">Keine Urlaubsanträge</p>
+            <p class="text-white/50 text-sm text-center py-8">Keine Urlaubsanträge</p>
         </template>
     </div>
 
     <!-- Team Overview -->
-    <div class="mt-8 bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <h3 class="text-sm font-semibold text-white mb-4">Team Übersicht – nächste 4 Wochen</h3>
+    <div class="mt-8 glass-card rounded-2xl p-5">
+        <h3 class="text-sm font-heading font-semibold text-white mb-4">Team Übersicht – nächste 4 Wochen</h3>
         <div class="space-y-2">
             <template x-for="v in teamVacations" :key="v.id">
                 <div class="flex items-center gap-3 text-sm">
-                    <div class="w-28 flex-shrink-0 text-gray-400 truncate" x-text="v.user_name"></div>
-                    <div class="flex-1 text-gray-300" x-text="formatDate(v.start_date) + ' – ' + formatDate(v.end_date)"></div>
-                    <div class="text-xs text-gray-500" x-text="v.days + ' T.'"></div>
+                    <div class="w-28 flex-shrink-0 text-white/40 truncate" x-text="v.user_name"></div>
+                    <div class="flex-1 text-white/70" x-text="formatDate(v.start_date) + ' – ' + formatDate(v.end_date)"></div>
+                    <div class="text-xs text-white/50" x-text="v.days + ' T.'"></div>
                 </div>
             </template>
             <template x-if="teamVacations.length === 0">
-                <p class="text-gray-500 text-xs">Keine Abwesenheiten in den nächsten 4 Wochen</p>
+                <p class="text-white/50 text-xs">Keine Abwesenheiten in den nächsten 4 Wochen</p>
             </template>
         </div>
     </div>
 
     <!-- Create Modal -->
     <div x-show="modal" x-cloak
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="modal = false">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
-            <div class="px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Urlaub beantragen</h2>
+        <div class="glass-card rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
+            <div class="px-6 py-4 border-b border-white/10">
+                <h2 class="font-heading font-semibold text-white">Urlaub beantragen</h2>
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Von *</label>
-                        <input x-model="form.start_date" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Von *</label>
+                        <input x-model="form.start_date" type="date" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Bis *</label>
-                        <input x-model="form.end_date" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Bis *</label>
+                        <input x-model="form.end_date" type="date" class="input-field">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Grund (optional)</label>
-                    <textarea x-model="form.reason" rows="2"
-                              class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Grund (optional)</label>
+                    <textarea x-model="form.reason" rows="2" class="input-field resize-none"></textarea>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-800 flex gap-3">
-                <button @click="submitVacation()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">
+            <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                <button @click="submitVacation()" class="btn-primary">
                     Beantragen
                 </button>
-                <button @click="modal = false" class="text-gray-400 text-sm">Abbrechen</button>
+                <button @click="modal = false" class="btn-ghost">Abbrechen</button>
             </div>
         </div>
     </div>

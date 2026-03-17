@@ -6,16 +6,16 @@ require __DIR__ . '/_layout.php';
 <div x-data="formsApp()" x-init="init()">
 
     <!-- Tabs -->
-    <div class="border-b border-gray-800 mb-6">
+    <div class="border-b border-white/10 mb-6">
         <div class="flex gap-1">
             <button @click="tab = 'expenses'"
                     class="px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px"
-                    :class="tab === 'expenses' ? 'text-brand-400 border-brand-500' : 'text-gray-400 border-transparent hover:text-white'">
+                    :class="tab === 'expenses' ? 'text-[#009dde] border-[#009dde]' : 'text-white/40 border-transparent hover:text-white'">
                 Spesenabrechnung
             </button>
             <button @click="tab = 'shooting'"
                     class="px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px"
-                    :class="tab === 'shooting' ? 'text-brand-400 border-brand-500' : 'text-gray-400 border-transparent hover:text-white'">
+                    :class="tab === 'shooting' ? 'text-[#009dde] border-[#009dde]' : 'text-white/40 border-transparent hover:text-white'">
                 Shooting Docs
             </button>
         </div>
@@ -25,7 +25,7 @@ require __DIR__ . '/_layout.php';
     <div x-show="tab === 'expenses'">
         <div class="flex justify-end mb-4">
             <button @click="openExpense()"
-                    class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl flex items-center gap-2">
+                    class="btn-primary flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -33,13 +33,13 @@ require __DIR__ . '/_layout.php';
             </button>
         </div>
 
-        <div x-show="loading" class="text-gray-500 text-sm">Laden…</div>
+        <div x-show="loading" class="text-white/50 text-sm">Laden…</div>
         <div x-show="!loading" class="space-y-3">
             <template x-for="e in expenses" :key="e.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-start gap-4">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-start gap-4">
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-white" x-text="e.title"></div>
-                        <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        <div class="flex items-center gap-2 mt-1 text-xs text-white/50">
                             <span x-text="formatDate(e.date)"></span>
                             <span x-text="'·'"></span>
                             <span x-text="e.category || 'Sonstiges'"></span>
@@ -72,7 +72,7 @@ require __DIR__ . '/_layout.php';
                 </div>
             </template>
             <template x-if="!loading && expenses.length === 0">
-                <p class="text-gray-500 text-sm text-center py-8">Keine Spesenabrechnungen</p>
+                <p class="text-white/50 text-sm text-center py-8">Keine Spesenabrechnungen</p>
             </template>
         </div>
     </div>
@@ -81,7 +81,7 @@ require __DIR__ . '/_layout.php';
     <div x-show="tab === 'shooting'">
         <div class="flex justify-end mb-4">
             <button @click="openShooting()"
-                    class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl flex items-center gap-2">
+                    class="btn-primary flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -91,55 +91,52 @@ require __DIR__ . '/_layout.php';
 
         <div class="space-y-3">
             <template x-for="s in shootingDocs" :key="s.id">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-start gap-4">
+                <div class="bg-white/5 border border-white/8 rounded-xl p-4 flex items-start gap-4">
                     <div class="flex-1">
                         <div class="text-sm font-medium text-white" x-text="s.title"></div>
-                        <div class="text-xs text-gray-500 mt-1" x-text="'Shooting: ' + formatDate(s.shooting_date)"></div>
-                        <div class="text-xs text-gray-500" x-text="s.location || ''"></div>
+                        <div class="text-xs text-white/50 mt-1" x-text="'Shooting: ' + formatDate(s.shooting_date)"></div>
+                        <div class="text-xs text-white/50" x-text="s.location || ''"></div>
                     </div>
                     <template x-if="s.file_url">
-                        <a :href="s.file_url" target="_blank" class="text-xs text-brand-400 hover:text-brand-300">
+                        <a :href="s.file_url" target="_blank" class="text-xs hover:opacity-80 transition-opacity" style="color: #009dde;">
                             Download
                         </a>
                     </template>
                 </div>
             </template>
             <template x-if="shootingDocs.length === 0">
-                <p class="text-gray-500 text-sm text-center py-8">Keine Shooting-Dokumente</p>
+                <p class="text-white/50 text-sm text-center py-8">Keine Shooting-Dokumente</p>
             </template>
         </div>
     </div>
 
     <!-- Expense Modal -->
     <div x-show="expenseModal" x-cloak
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="expenseModal = false">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
-            <div class="px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Neue Spesenabrechnung</h2>
+        <div class="glass-card rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
+            <div class="px-6 py-4 border-b border-white/10">
+                <h2 class="font-heading font-semibold text-white">Neue Spesenabrechnung</h2>
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Bezeichnung *</label>
-                    <input x-model="expForm.title" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bezeichnung *</label>
+                    <input x-model="expForm.title" type="text" class="input-field">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Betrag (€)</label>
-                        <input x-model="expForm.amount" type="number" step="0.01"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Betrag (€)</label>
+                        <input x-model="expForm.amount" type="number" step="0.01" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Datum</label>
-                        <input x-model="expForm.date" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Datum</label>
+                        <input x-model="expForm.date" type="date" class="input-field">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Kategorie</label>
-                    <select x-model="expForm.category"
-                            class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Kategorie</label>
+                    <select x-model="expForm.category" class="input-field">
                         <option value="">–</option>
                         <option value="travel">Reise</option>
                         <option value="meals">Verpflegung</option>
@@ -149,69 +146,61 @@ require __DIR__ . '/_layout.php';
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Notiz</label>
-                    <textarea x-model="expForm.notes" rows="2"
-                              class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Notiz</label>
+                    <textarea x-model="expForm.notes" rows="2" class="input-field resize-none"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Beleg</label>
-                    <input type="file" @change="expFile = $event.target.files[0]"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2 text-sm">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Beleg</label>
+                    <input type="file" @change="expFile = $event.target.files[0]" class="input-field">
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-800 flex gap-3">
-                <button @click="saveExpense()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">
+            <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                <button @click="saveExpense()" class="btn-primary">
                     Einreichen
                 </button>
-                <button @click="expenseModal = false" class="text-gray-400 text-sm">Abbrechen</button>
+                <button @click="expenseModal = false" class="btn-ghost">Abbrechen</button>
             </div>
         </div>
     </div>
 
     <!-- Shooting Modal -->
     <div x-show="shootingModal" x-cloak
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="shootingModal = false">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
-            <div class="px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Neues Shooting-Dokument</h2>
+        <div class="glass-card rounded-2xl w-full max-w-md shadow-2xl" @click.stop>
+            <div class="px-6 py-4 border-b border-white/10">
+                <h2 class="font-heading font-semibold text-white">Neues Shooting-Dokument</h2>
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Titel *</label>
-                    <input x-model="shootForm.title" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Titel *</label>
+                    <input x-model="shootForm.title" type="text" class="input-field">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Shooting-Datum</label>
-                        <input x-model="shootForm.shooting_date" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Shooting-Datum</label>
+                        <input x-model="shootForm.shooting_date" type="date" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Location</label>
-                        <input x-model="shootForm.location" type="text"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Location</label>
+                        <input x-model="shootForm.location" type="text" class="input-field">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Kunde</label>
-                    <input x-model="shootForm.customer_name" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Kunde</label>
+                    <input x-model="shootForm.customer_name" type="text" class="input-field">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Notizen</label>
-                    <textarea x-model="shootForm.notes" rows="3"
-                              class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Notizen</label>
+                    <textarea x-model="shootForm.notes" rows="3" class="input-field resize-none"></textarea>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-800 flex gap-3">
-                <button @click="saveShooting()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">
+            <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                <button @click="saveShooting()" class="btn-primary">
                     Erstellen
                 </button>
-                <button @click="shootingModal = false" class="text-gray-400 text-sm">Abbrechen</button>
+                <button @click="shootingModal = false" class="btn-ghost">Abbrechen</button>
             </div>
         </div>
     </div>

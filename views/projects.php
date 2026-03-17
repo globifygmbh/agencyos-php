@@ -10,10 +10,9 @@ require __DIR__ . '/_layout.php';
         <div class="flex-1">
             <input type="search" x-model.debounce.300ms="search" @input="load()"
                    placeholder="Projekte suchen…"
-                   class="bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 w-72">
+                   class="input-field w-72">
         </div>
-        <select x-model="filterStatus" @change="load()"
-                class="bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+        <select x-model="filterStatus" @change="load()" class="input-field">
             <option value="">Alle Status</option>
             <option value="active">Aktiv</option>
             <option value="completed">Abgeschlossen</option>
@@ -21,7 +20,7 @@ require __DIR__ . '/_layout.php';
             <option value="cancelled">Abgebrochen</option>
         </select>
         <button @click="openCreate()"
-                class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
+                class="btn-primary flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -30,15 +29,15 @@ require __DIR__ . '/_layout.php';
     </div>
 
     <!-- Grid -->
-    <div x-show="loading" class="text-gray-500 text-sm">Laden…</div>
+    <div x-show="loading" class="text-white/50 text-sm">Laden…</div>
     <div x-show="!loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <template x-for="p in projects" :key="p.id">
             <a :href="'/projects/' + p.id"
-               class="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-600 transition-all block">
+               class="bg-white/5 border border-white/8 rounded-2xl p-5 hover:border-white/20 transition-all block">
                 <!-- Color bar -->
                 <div class="h-1 rounded-full mb-4" :style="'background:' + (p.color || '#6366f1')"></div>
                 <div class="flex items-start justify-between gap-2 mb-2">
-                    <h3 class="font-semibold text-white text-sm leading-tight" x-text="p.name"></h3>
+                    <h3 class="font-heading font-semibold text-white text-sm leading-tight" x-text="p.name"></h3>
                     <span class="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
                           :class="{
                             'bg-green-900/30 text-green-400': p.status === 'active',
@@ -48,8 +47,8 @@ require __DIR__ . '/_layout.php';
                           }"
                           x-text="{active:'Aktiv',completed:'Abgeschlossen',on_hold:'Pausiert',cancelled:'Abgebrochen'}[p.status] || p.status"></span>
                 </div>
-                <p class="text-xs text-gray-500 line-clamp-2 mb-3" x-text="p.description || '–'"></p>
-                <div class="flex items-center gap-3 text-xs text-gray-500">
+                <p class="text-xs text-white/50 line-clamp-2 mb-3" x-text="p.description || '–'"></p>
+                <div class="flex items-center gap-3 text-xs text-white/50">
                     <template x-if="p.deadline">
                         <span x-text="'Fällig: ' + formatDate(p.deadline)"></span>
                     </template>
@@ -59,31 +58,33 @@ require __DIR__ . '/_layout.php';
                 </div>
                 <template x-if="p.progress !== undefined">
                     <div class="mt-3">
-                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <div class="flex justify-between text-xs text-white/50 mb-1">
                             <span>Fortschritt</span>
                             <span x-text="(p.progress || 0) + '%'"></span>
                         </div>
-                        <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full bg-brand-500 transition-all"
-                                 :style="'width:' + (p.progress || 0) + '%'"></div>
+                        <div class="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all"
+                                 style="background: #009dde;"
+                                 :style="'width:' + (p.progress || 0) + '%; background: #009dde;'"></div>
                         </div>
                     </div>
                 </template>
             </a>
         </template>
         <template x-if="!loading && projects.length === 0">
-            <div class="col-span-3 text-center py-12 text-gray-500">Keine Projekte gefunden</div>
+            <div class="col-span-3 text-center py-12 text-white/50">Keine Projekte gefunden</div>
         </template>
     </div>
 
     <!-- Create Modal -->
     <div x-show="modal" x-cloak
-         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);"
          @click.self="modal = false">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl" @click.stop>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-                <h2 class="font-semibold text-white">Neues Projekt</h2>
-                <button @click="modal = false" class="text-gray-400 hover:text-white">
+        <div class="glass-card rounded-2xl w-full max-w-lg shadow-2xl" @click.stop>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <h2 class="font-heading font-semibold text-white">Neues Projekt</h2>
+                <button @click="modal = false" class="text-white/40 hover:text-white">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -91,55 +92,48 @@ require __DIR__ . '/_layout.php';
             </div>
             <div class="px-6 py-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Name *</label>
-                    <input x-model="form.name" type="text"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Name *</label>
+                    <input x-model="form.name" type="text" class="input-field">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Beschreibung</label>
-                    <textarea x-model="form.description" rows="2"
-                              class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"></textarea>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Beschreibung</label>
+                    <textarea x-model="form.description" rows="2" class="input-field resize-none"></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Status</label>
-                        <select x-model="form.status"
-                                class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Status</label>
+                        <select x-model="form.status" class="input-field">
                             <option value="active">Aktiv</option>
                             <option value="on_hold">Pausiert</option>
                             <option value="completed">Abgeschlossen</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Farbe</label>
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Farbe</label>
                         <input x-model="form.color" type="color"
-                               class="w-full h-10 bg-gray-800 border border-gray-700 rounded-xl px-2 py-1">
+                               class="w-full h-10 bg-white/8 border border-white/10 rounded-xl px-2 py-1">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Startdatum</label>
-                        <input x-model="form.start_date" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Startdatum</label>
+                        <input x-model="form.start_date" type="date" class="input-field">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">Fälligkeitsdatum</label>
-                        <input x-model="form.deadline" type="date"
-                               class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-xs font-medium text-white/40 mb-1.5">Fälligkeitsdatum</label>
+                        <input x-model="form.deadline" type="date" class="input-field">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Budget (€)</label>
-                    <input x-model="form.budget" type="number"
-                           class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Budget (€)</label>
+                    <input x-model="form.budget" type="number" class="input-field">
                 </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-800 flex gap-3">
-                <button @click="saveProject()"
-                        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">
+            <div class="px-6 py-4 border-t border-white/10 flex gap-3">
+                <button @click="saveProject()" class="btn-primary">
                     Erstellen
                 </button>
-                <button @click="modal = false" class="text-gray-400 hover:text-white text-sm">Abbrechen</button>
+                <button @click="modal = false" class="btn-ghost">Abbrechen</button>
             </div>
         </div>
     </div>
