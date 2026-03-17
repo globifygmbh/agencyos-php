@@ -259,6 +259,20 @@ class ChatRoutes
             return self::json($response, ['status' => 'online']);
         });
 
+        // GET /api/chat/unread-count
+        $app->get('/api/chat/unread-count', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            $uid  = $user['id'];
+            $count = (int)(Database::fetchOne(
+                "SELECT COUNT(*) as c FROM messages m
+                 JOIN conversation_participants cp ON cp.conversation_id=m.conversation_id AND cp.user_id=?
+                 WHERE m.user_id!=? AND m.is_deleted=0
+                   AND m.id NOT IN (SELECT message_id FROM message_reads WHERE user_id=?)",
+                [$uid, $uid, $uid]
+            )['c'] ?? 0);
+            return self::json($response, ['unread_count' => $count]);
+        });
+
         // GET /api/chat/settings
         $app->get('/api/chat/settings', function (Request $request, Response $response) {
             $user     = Security::getCurrentUser($request);

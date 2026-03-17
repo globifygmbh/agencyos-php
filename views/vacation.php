@@ -166,14 +166,16 @@ function vacationApp() {
         },
 
         async loadStats() {
-            const r = await fetch('/api/vacations/stats');
-            if (r.ok) this.stats = await r.json();
+            // Use the user data from dashboard or derive from vacations
+            fetch('/api/users/me/preferences').then(r => r.json()).then(d => {
+                if (d && d.vacation_days_total) this.stats = d;
+            }).catch(() => {});
         },
 
         async loadTeam() {
+            // Load all upcoming approved vacations as "team" view
             const from = new Date().toISOString().split('T')[0];
-            const to   = new Date(Date.now() + 28 * 86400000).toISOString().split('T')[0];
-            const r = await fetch('/api/vacations/team?from=' + from + '&to=' + to);
+            const r = await fetch('/api/vacations/calendar?from=' + from);
             if (r.ok) { const d = await r.json(); this.teamVacations = Array.isArray(d) ? d : []; }
         },
 

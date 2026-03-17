@@ -217,6 +217,40 @@
             </template>
         </div>
 
+        <!-- Notes Widget -->
+        <div x-show="widgets.showNotes" class="glass-card p-4" style="background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(124,58,237,0.03));">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <span class="text-sm font-semibold text-white font-heading">Notizen</span>
+                </div>
+                <a href="/notes" class="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors">
+                    Alle <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+            <template x-if="recentNotes.length > 0">
+                <div class="space-y-2">
+                    <template x-for="note in recentNotes.slice(0,3)" :key="note.id">
+                        <a href="/notes" class="block p-2.5 rounded-xl bg-white/4 hover:bg-white/8 transition-colors">
+                            <p class="text-sm font-medium text-white truncate" x-text="note.title || 'Ohne Titel'"></p>
+                            <p x-show="note.content" class="text-xs text-white/40 truncate mt-0.5" x-text="note.content"></p>
+                        </a>
+                    </template>
+                </div>
+            </template>
+            <template x-if="recentNotes.length === 0">
+                <div class="flex flex-col items-center py-5 text-white/30">
+                    <svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <p class="text-sm">Noch keine Notizen</p>
+                    <a href="/notes" class="mt-2 btn-ghost text-xs py-1.5 px-3">+ Notiz erstellen</a>
+                </div>
+            </template>
+        </div>
+
         <!-- Calendar Events Widget -->
         <div x-show="widgets.showCalendar" class="glass-card p-4" style="background: linear-gradient(135deg, rgba(255,59,48,0.08), rgba(255,59,48,0.02));">
             <div class="flex items-center justify-between mb-3">
@@ -337,6 +371,7 @@ function dashboardApp() {
     return {
         dashboard: { tasks: [], vacations_this_week: [], upcoming_events: [] },
         weather: null,
+        recentNotes: [],
         activeTimer: null,
         timerSeconds: 0,
         timerInterval: null,
@@ -345,11 +380,12 @@ function dashboardApp() {
         showStopModal: false,
         customers: [],
         configMode: false,
-        widgets: { showTimer: true, showStats: true, showTasks: true, showWeather: true, showCalendar: true, showTeam: true },
+        widgets: { showTimer: true, showStats: true, showTasks: true, showWeather: true, showCalendar: true, showTeam: true, showNotes: true },
         widgetList: [
             { key: 'showTimer', label: 'Timer' }, { key: 'showStats', label: 'Statistiken' },
             { key: 'showTasks', label: 'Tasks' }, { key: 'showWeather', label: 'Wetter' },
             { key: 'showCalendar', label: 'Kalender' }, { key: 'showTeam', label: 'Team' },
+            { key: 'showNotes', label: 'Notizen' },
         ],
         stopForm: { customer_id: '', activity_type: '', description: '' },
         greeting: 'Hallo',
@@ -362,6 +398,7 @@ function dashboardApp() {
             this.loadWeather();
             this.loadTimerState();
             this.loadCustomers();
+            this.loadNotes();
         },
 
         updateClock() {
@@ -395,6 +432,9 @@ function dashboardApp() {
         },
         loadCustomers() {
             fetch('/api/customers').then(r => r.json()).then(d => { this.customers = Array.isArray(d) ? d.filter(c => !c.is_archived) : []; }).catch(() => {});
+        },
+        loadNotes() {
+            fetch('/api/notes?limit=5').then(r => r.json()).then(d => { this.recentNotes = Array.isArray(d) ? d.slice(0, 5) : []; }).catch(() => {});
         },
         startTimerTick() {
             if (this.timerInterval) clearInterval(this.timerInterval);

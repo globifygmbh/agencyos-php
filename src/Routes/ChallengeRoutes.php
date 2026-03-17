@@ -172,6 +172,55 @@ class ChallengeRoutes
             return self::json($response, ['awarded' => $awarded, 'points' => $awarded ? Gamification::POINTS['daily_login'] : 0]);
         });
 
+        // GET /api/challenges/my-redemptions
+        $app->get('/api/challenges/my-redemptions', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            $redemptions = Database::fetchAll(
+                'SELECT rr.*,r.title,r.icon,r.description FROM reward_redemptions rr JOIN rewards r ON r.id=rr.reward_id WHERE rr.user_id=? ORDER BY rr.created_at DESC',
+                [$user['id']]
+            );
+            return self::json($response, $redemptions);
+        });
+
+        // GET /api/challenges/admin/redemptions  (CHEF: all pending redemptions)
+        $app->get('/api/challenges/admin/redemptions', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            Security::requireRole($user, 'CHEF');
+            $redemptions = Database::fetchAll(
+                "SELECT rr.*,r.title,r.icon,r.points_required,u.first_name,u.last_name,u.color
+                 FROM reward_redemptions rr
+                 JOIN rewards r ON r.id=rr.reward_id
+                 JOIN users u ON u.id=rr.user_id
+                 ORDER BY rr.created_at DESC"
+            );
+            return self::json($response, $redemptions);
+        });
+
+        // PUT /api/challenges/redemptions/{redemption_id}  (CHEF: approve/reject)
+        $app->put('/api/challenges/redemptions/{redemption_id}', function (Request $request, Response $response, array $args) {
+            $user = Security::getCurrentUser($request);
+            Security::requireRole($user, 'CHEF');
+            $body   = (array) $request->getParsedBody();
+            $status = $body['status'] ?? 'approved';
+            $note   = $body['note'] ?? '';
+
+            $redemption = Database::fetchOne('SELECT rr.*,r.title FROM reward_redemptions rr JOIN rewards r ON r.id=rr.reward_id WHERE rr.id=?', [$args['redemption_id']]);
+            if (!$redemption) return self::error($response, 'Einlösung nicht gefunden', 404);
+
+            Database::update('reward_redemptions', [
+                'status'       => $status,
+                'admin_note'   => $note,
+                'processed_by' => $user['id'],
+                'processed_at' => Helpers::now(),
+            ], ['id' => $args['redemption_id']]);
+
+            $icon = $status === 'approved' ? '✅' : '❌';
+            $label = $status === 'approved' ? 'genehmigt' : 'abgelehnt';
+            Helpers::createNotification($redemption['user_id'], 'redemption_' . $status, "$icon Einlösung $label", 'Deine Einlösung für "' . $redemption['title'] . '" wurde ' . $label, '/challenges');
+
+            return self::json($response, ['message' => "Einlösung $label"]);
+        });
+
         // GET /api/challenges/point-rules
         $app->get('/api/challenges/point-rules', function (Request $request, Response $response) {
             Security::getCurrentUser($request);

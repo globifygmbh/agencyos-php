@@ -533,7 +533,7 @@ function calendarApp() {
                 from = this.currentDay;
                 to   = this.currentDay;
             }
-            const r = await fetch('/api/calendar?from=' + from + '&to=' + to);
+            const r = await fetch('/api/calendar/events?from=' + from + '&to=' + to);
             const d = await r.json();
             this.events = Array.isArray(d) ? d : [];
         },
@@ -604,7 +604,7 @@ function calendarApp() {
         async saveEvent() {
             if (!this.form.title?.trim()) return alert('Titel erforderlich');
             const method = this.isNew ? 'POST' : 'PUT';
-            const url = this.isNew ? '/api/calendar' : '/api/calendar/' + this.currentEvent.id;
+            const url = this.isNew ? '/api/calendar/events' : '/api/calendar/events/' + this.currentEvent.id;
             const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(this.form) });
             if (r.ok) { this.modal = false; await this.loadEvents(); }
             else { const e = await r.json(); alert(e.detail || 'Fehler'); }
@@ -612,7 +612,7 @@ function calendarApp() {
 
         async deleteEvent() {
             if (!confirm('Event löschen?')) return;
-            await fetch('/api/calendar/' + this.currentEvent.id, { method: 'DELETE' });
+            await fetch('/api/calendar/events/' + this.currentEvent.id, { method: 'DELETE' });
             this.modal = false; await this.loadEvents();
         },
 

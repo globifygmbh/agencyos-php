@@ -66,7 +66,8 @@
 
         function appLayout() {
             return {
-                sidebarOpen: true,
+                sidebarOpen: window.innerWidth >= 768,
+                mobileSidebarOpen: false,
                 currentUser: window.CURRENT_USER,
                 activeTimer: null,
                 timerSeconds: 0,
@@ -79,6 +80,11 @@
                 notifications: [],
                 themeMode: localStorage.getItem('themeMode') || 'system',
                 isDark: true,
+                // Greeting overlay
+                showGreeting: false,
+                greetingEmoji: '👋',
+                greetingTitle: 'Willkommen zurück',
+                greetingSubtitle: 'Schön, dass du da bist.',
 
                 init() {
                     this.applyTheme();
@@ -90,6 +96,64 @@
                     this.loadCustomLinks();
                     this.loadNotifications();
                     setInterval(() => this.loadUnreadCounts(), 30000);
+                    this.checkGreeting();
+                    // Close mobile sidebar on resize to desktop
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth >= 768) this.mobileSidebarOpen = false;
+                    });
+                },
+
+                checkGreeting() {
+                    const key = 'greetingShown_' + new Date().toDateString();
+                    if (sessionStorage.getItem(key)) return;
+                    sessionStorage.setItem(key, '1');
+
+                    const h = new Date().getHours();
+                    const day = new Date().getDay();
+                    const name = this.currentUser.first_name || '';
+
+                    const morning = [
+                        { e: '🌅', t: 'Guten Morgen', s: 'Bereit für einen produktiven Tag?' },
+                        { e: '☕', t: 'Guten Morgen', s: 'Erst Kaffee, dann die Welt.' },
+                        { e: '🚀', t: 'Guten Morgen', s: 'Zeit, ein paar Tasks zu erledigen.' },
+                        { e: '✨', t: 'Guten Morgen', s: 'Heute wird ein guter Tag.' },
+                        { e: '🧠', t: 'Guten Morgen', s: 'Deine Tasks warten schon.' },
+                    ];
+                    const day_msgs = [
+                        { e: '👋', t: 'Willkommen zurück', s: 'Weiter geht\'s.' },
+                        { e: '⚡', t: 'Willkommen zurück', s: 'Lass uns was bewegen.' },
+                        { e: '🎯', t: 'Zurück im System', s: 'Was steht als nächstes an?' },
+                        { e: '📋', t: 'Willkommen zurück', s: 'Ein paar Tasks warten noch.' },
+                        { e: '🚀', t: 'Alles bereit', s: 'Lass uns loslegen.' },
+                    ];
+                    const evening = [
+                        { e: '🌙', t: 'Guten Abend', s: 'Noch ein paar letzte Dinge?' },
+                        { e: '✨', t: 'Guten Abend', s: 'Vielleicht noch ein letzter Task?' },
+                        { e: '🌆', t: 'Willkommen zurück', s: 'Der Endspurt läuft.' },
+                    ];
+                    const monday = [
+                        { e: '🚀', t: 'Neue Woche, neue Chancen', s: 'Los geht\'s!' },
+                        { e: '⚡', t: 'Montag gestartet', s: 'Zeit für Fortschritt.' },
+                        { e: '🌟', t: 'Willkommen in der neuen Woche', s: 'Bereit für neue Herausforderungen?' },
+                    ];
+
+                    let pool = day === 1 ? monday : (h < 12 ? morning : (h < 18 ? day_msgs : evening));
+                    const msg = pool[Math.floor(Math.random() * pool.length)];
+                    this.greetingEmoji = msg.e;
+                    this.greetingTitle = msg.t + (name ? ', ' + name : '') + '!';
+                    this.greetingSubtitle = msg.s;
+                    this.showGreeting = true;
+                    setTimeout(() => { this.showGreeting = false; }, 2800);
+                },
+
+                dismissGreeting() { this.showGreeting = false; },
+
+                toggleSidebarMobile() {
+                    if (window.innerWidth < 768) {
+                        this.mobileSidebarOpen = !this.mobileSidebarOpen;
+                    } else {
+                        this.sidebarOpen = !this.sidebarOpen;
+                    }
                 },
 
                 applyTheme() {
@@ -132,7 +196,7 @@
                 },
 
                 markAllRead() {
-                    fetch('/api/notifications/read-all', { method: 'POST' }).then(() => {
+                    fetch('/api/notifications/read-all', { method: 'PUT' }).then(() => {
                         this.notifications.forEach(n => n.is_read = true);
                         this.unreadNotifications = 0;
                     }).catch(() => {});
@@ -140,7 +204,7 @@
 
                 readNotif(n) {
                     if (!n.is_read) {
-                        fetch('/api/notifications/' + n.id + '/read', { method: 'POST' }).then(() => {
+                        fetch('/api/notifications/' + n.id + '/read', { method: 'PUT' }).then(() => {
                             n.is_read = true;
                             this.unreadNotifications = Math.max(0, this.unreadNotifications - 1);
                         }).catch(() => {});
@@ -212,7 +276,7 @@
                 },
 
                 loadUnreadCounts() {
-                    fetch('/api/chat/unread').then(r => r.json()).then(d => { this.unreadChat = d.count || 0; }).catch(() => {});
+                    fetch('/api/chat/unread-count').then(r => r.json()).then(d => { this.unreadChat = d.count || d.unread_count || 0; }).catch(() => {});
                     fetch('/api/notifications/unread').then(r => r.json()).then(d => { this.unreadNotifications = d.count || 0; }).catch(() => {});
                 },
 
@@ -236,7 +300,7 @@
                     }).catch(() => {});
                 },
 
-                toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; },
+                toggleSidebar() { this.toggleSidebarMobile(); },
 
                 userInitials() {
                     return (this.currentUser.first_name?.charAt(0) || '') + (this.currentUser.last_name?.charAt(0) || '');
@@ -499,11 +563,95 @@
 </head>
 <body class="h-full text-white" style="background:#000;" x-data="appLayout()" x-init="init()">
 
+<!-- ===== GREETING OVERLAY ===== -->
+<div x-show="showGreeting" x-cloak
+     @click="dismissGreeting()"
+     style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);cursor:pointer;"
+     x-transition:enter="transition ease-out duration-500"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-1"
+     x-transition:leave="transition ease-in duration-300"
+     x-transition:leave-start="opacity-1"
+     x-transition:leave-end="opacity-0">
+    <div style="text-align:center;padding:3rem 2rem;max-width:28rem;position:relative;"
+         x-transition:enter="transition ease-out duration-500"
+         x-transition:enter-start="opacity-0;transform:scale(0.85) translateY(24px)"
+         x-transition:enter-end="opacity-1;transform:scale(1) translateY(0)"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="opacity-1;transform:scale(1)"
+         x-transition:leave-end="opacity-0;transform:scale(0.92) translateY(-12px)">
+        <!-- Glow -->
+        <div style="position:absolute;inset:-60px;background:radial-gradient(ellipse at center,rgba(0,157,222,0.25),transparent 70%);pointer-events:none;"></div>
+        <!-- Emoji -->
+        <div style="font-size:4.5rem;line-height:1;margin-bottom:1.25rem;filter:drop-shadow(0 0 24px rgba(0,157,222,0.5));" x-text="greetingEmoji">👋</div>
+        <!-- Title -->
+        <h2 style="font-family:'Outfit',sans-serif;font-size:2rem;font-weight:700;color:#fff;margin:0 0 0.5rem;letter-spacing:-0.025em;text-shadow:0 2px 20px rgba(0,0,0,0.5);" x-text="greetingTitle">Willkommen zurück!</h2>
+        <!-- Subtitle -->
+        <p style="color:rgba(255,255,255,0.55);font-size:1rem;margin:0 0 2rem;" x-text="greetingSubtitle">Schön, dass du da bist.</p>
+        <!-- Progress bar auto-dismiss -->
+        <div style="width:4rem;height:2px;background:rgba(255,255,255,0.15);border-radius:999px;margin:0 auto;overflow:hidden;">
+            <div style="height:100%;background:#009dde;border-radius:999px;animation:greetingProgress 2.8s linear forwards;"></div>
+        </div>
+        <p style="color:rgba(255,255,255,0.25);font-size:0.75rem;margin-top:0.75rem;">Klicken zum Schließen</p>
+    </div>
+</div>
+<style>
+@keyframes greetingProgress { from { width: 0%; } to { width: 100%; } }
+
+/* ===== MOBILE SIDEBAR ===== */
+@media (max-width: 767px) {
+    .sidebar-el {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        z-index: 30;
+    }
+    .sidebar-el.sidebar-mobile-open {
+        transform: translateX(0);
+    }
+    .main-content-area {
+        margin-left: 0 !important;
+    }
+}
+@media (min-width: 768px) {
+    .sidebar-el {
+        transition: width 0.3s cubic-bezier(0.32, 0.72, 0, 1), transform 0.3s;
+    }
+    .sidebar-hidden {
+        width: 0 !important;
+        overflow: hidden;
+        border: none !important;
+        min-width: 0 !important;
+    }
+}
+/* Smooth page transitions */
+.page-content { animation: pageEnter 0.25s ease both; }
+@keyframes pageEnter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<!-- ===== MOBILE BACKDROP ===== -->
+<div x-show="mobileSidebarOpen" x-cloak
+     @click="mobileSidebarOpen = false"
+     style="position:fixed;inset:0;z-index:25;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-1"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-1"
+     x-transition:leave-end="opacity-0"
+     class="md:hidden"></div>
+
 <div class="flex h-full">
     <!-- Sidebar -->
-    <aside x-show="sidebarOpen"
-           style="display: flex;"
-           class="w-64 flex-shrink-0 flex flex-col h-screen sticky top-0 z-20 glass border-r border-white/8">
+    <aside
+        :class="{ 'sidebar-mobile-open': mobileSidebarOpen, 'sidebar-hidden': !sidebarOpen }"
+        class="sidebar-el w-64 flex-shrink-0 flex flex-col glass border-r border-white/8 h-screen sticky top-0 z-30"
+        id="main-sidebar"
+    >
 
         <!-- Logo -->
         <div class="px-5 py-5 border-b border-white/8 flex-shrink-0">
@@ -675,7 +823,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
                     <span x-show="unreadNotifications > 0" x-cloak
-                          class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500"></span>
+                          class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
+                          x-text="unreadNotifications > 9 ? '9+' : unreadNotifications"></span>
                 </button>
                 <!-- Notification dropdown -->
                 <div x-show="notifOpen" x-cloak @click.outside="notifOpen = false"
@@ -751,7 +900,7 @@
         </header>
 
         <!-- Content -->
-        <main class="flex-1 overflow-y-auto p-6 page-content">
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 page-content pb-20 md:pb-6 main-content-area">
 
 <!-- Custom Links Modal (managed at body/appLayout level) -->
 <div x-show="showCustomLinkModal" x-cloak

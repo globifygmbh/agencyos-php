@@ -250,6 +250,43 @@ class FormRoutes
             return self::json($response, ['receipt_url' => $stored['url']]);
         });
 
+        // GET /api/expense-reports/all  (admin: all users)
+        $app->get('/api/expense-reports/all', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            Security::requireRole($user, ['CHEF', 'ACCOUNT_MANAGER']);
+            $params = $request->getQueryParams();
+
+            $sql   = 'SELECT er.*,u.first_name,u.last_name FROM expense_reports er JOIN users u ON u.id=er.user_id WHERE 1=1';
+            $binds = [];
+            if (!empty($params['status'])) { $sql .= ' AND er.status=?'; $binds[] = $params['status']; }
+            $sql .= ' ORDER BY er.created_at DESC';
+
+            $reports = Database::fetchAll($sql, $binds);
+            foreach ($reports as &$r) {
+                $r['items'] = Helpers::jsonDecode($r['items'], []);
+            }
+            return self::json($response, $reports);
+        });
+
+        // GET /api/shooting-docs/all  (admin: all users)
+        $app->get('/api/shooting-docs/all', function (Request $request, Response $response) {
+            $user = Security::getCurrentUser($request);
+            Security::requireRole($user, ['CHEF', 'ACCOUNT_MANAGER']);
+            $params = $request->getQueryParams();
+
+            $sql   = 'SELECT sd.*,c.name as customer_name,u.first_name,u.last_name FROM shooting_docs sd LEFT JOIN customers c ON c.id=sd.customer_id LEFT JOIN users u ON u.id=sd.user_id WHERE 1=1';
+            $binds = [];
+            if (!empty($params['status'])) { $sql .= ' AND sd.status=?'; $binds[] = $params['status']; }
+            $sql .= ' ORDER BY sd.date DESC,sd.created_at DESC';
+
+            $docs = Database::fetchAll($sql, $binds);
+            foreach ($docs as &$doc) {
+                $doc['team_members']    = Helpers::jsonDecode($doc['team_members'], []);
+                $doc['social_contacts'] = Helpers::jsonDecode($doc['social_contacts'], []);
+            }
+            return self::json($response, $docs);
+        });
+
         // GET /api/admin/forms-stats
         $app->get('/api/admin/forms-stats', function (Request $request, Response $response) {
             $user = Security::getCurrentUser($request);

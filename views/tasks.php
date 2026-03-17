@@ -521,7 +521,7 @@ function tasksApp() {
         },
 
         async loadStatuses() {
-            const r = await fetch('/api/tasks/statuses');
+            const r = await fetch('/api/task-statuses');
             const d = await r.json();
             this.statuses = Array.isArray(d) ? d : [];
         },
